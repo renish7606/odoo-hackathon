@@ -80,42 +80,12 @@ interface State {
   expenses: Expense[];
   activity: Activity[];
   session: Session | null;
-<<<<<<< Updated upstream
-=======
   settings: Settings;
   vehicleROI: any[];
->>>>>>> Stashed changes
 }
 
 const API_BASE = "http://localhost:5000/api";
 
-<<<<<<< Updated upstream
-const seed: State = {
-  session: null,
-  isHydratingAuth: true,
-  settings: { depotName: "Gandhinagar Depot", currency: "INR", distanceUnit: "Kilometer" },
-  vehicles: [
-    { id: uid(), regNumber: "MH-12-AB-1001", model: "Tata Prima 4028", type: "Truck", maxLoad: 25000, odometer: 84210, cost: 45000, status: "Available", region: "West" },
-    { id: uid(), regNumber: "MH-14-CD-2233", model: "Ashok Leyland Dost", type: "Van", maxLoad: 1500, odometer: 32100, cost: 12000, status: "On Trip", region: "West" },
-    { id: uid(), regNumber: "DL-01-EF-8899", model: "Eicher Pro 3015", type: "Truck", maxLoad: 15000, odometer: 51000, cost: 28000, status: "In Shop", region: "North" },
-    { id: uid(), regNumber: "KA-03-GH-4567", model: "Mahindra Bolero Pickup", type: "Van", maxLoad: 1200, odometer: 18800, cost: 9500, status: "Available", region: "South" },
-    { id: uid(), regNumber: "TN-09-JK-3321", model: "BharatBenz 2823R", type: "Truck", maxLoad: 22000, odometer: 120400, cost: 52000, status: "Retired", region: "South" },
-  ],
-  drivers: [
-    { id: uid(), name: "Ravi Sharma", licenseNumber: "MH1420190001", licenseCategory: "HMV", licenseExpiry: "2027-06-15", contact: "9876543210", safetyScore: 88, status: "Available" },
-    { id: uid(), name: "Anita Desai", licenseNumber: "DL0120180077", licenseCategory: "LMV", licenseExpiry: "2024-01-10", contact: "9812345678", safetyScore: 74, status: "Off Duty" },
-    { id: uid(), name: "Karthik Iyer", licenseNumber: "KA0320210555", licenseCategory: "HMV", licenseExpiry: "2028-11-22", contact: "9900112233", safetyScore: 92, status: "On Trip" },
-    { id: uid(), name: "Suresh Patel", licenseNumber: "GJ0120170099", licenseCategory: "HMV", licenseExpiry: "2023-08-01", contact: "9765432198", safetyScore: 65, status: "Suspended" },
-  ],
-  trips: [],
-  maintenance: [],
-  expenses: [
-    { id: uid(), kind: "Fuel Log", vehicleId: "", liters: 120, amount: 12000, date: new Date().toISOString().slice(0, 10) },
-  ],
-  activity: [
-    { id: uid(), ts: now(), text: "System initialised with seed fleet data" },
-  ],
-=======
 const getInitialSession = () => {
   if (typeof window !== 'undefined') {
     const saved = localStorage.getItem('transitops:session');
@@ -124,7 +94,6 @@ const getInitialSession = () => {
     }
   }
   return null;
->>>>>>> Stashed changes
 };
 
 const initialState: State = {
@@ -142,16 +111,6 @@ const initialState: State = {
 interface Ctx extends State {
   login: (s: Session) => void;
   logout: () => void;
-<<<<<<< Updated upstream
-  addVehicle: (v: Omit<Vehicle, "id">) => string | null;
-  updateVehicle: (id: string, patch: Partial<Vehicle>) => void;
-  addDriver: (d: Omit<Driver, "id">) => void;
-  addTrip: (t: Omit<Trip, "id" | "createdAt" | "status"> & { status?: TripStatus }) => void;
-  updateTripStatus: (id: string, status: TripStatus) => void;
-  addMaintenance: (m: Omit<Maintenance, "id">) => void;
-  toggleMaintenance: (id: string) => void;
-  addExpense: (e: Omit<Expense, "id">) => void;
-=======
   addVehicle: (v: Omit<Vehicle, "id">) => Promise<string>;
   updateVehicle: (id: string, patch: Partial<Vehicle>) => Promise<void>;
   addDriver: (d: Omit<Driver, "id">) => Promise<void>;
@@ -162,30 +121,11 @@ interface Ctx extends State {
   addExpense: (e: Omit<Expense, "id">) => Promise<void>;
   updateSettings: (patch: Partial<Settings>) => void;
   refreshData: () => Promise<void>;
->>>>>>> Stashed changes
 }
 
 const StoreContext = createContext<Ctx | null>(null);
 
-<<<<<<< Updated upstream
-function loadInitial(): State {
-  if (typeof window === "undefined") return seed;
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw) as Partial<State>;
-      // Merge with seed so any new fields (e.g. settings) are always present
-      return { ...seed, ...parsed, settings: { ...seed.settings, ...(parsed.settings ?? {}) } };
-    }
-  } catch {}
-  // fix seed: link first expense to first vehicle
-  const s = { ...seed };
-  if (s.vehicles[0]) s.expenses = s.expenses.map((e) => ({ ...e, vehicleId: e.vehicleId || s.vehicles[0].id }));
-  return s;
-}
 
-=======
->>>>>>> Stashed changes
 export function TransitOpsProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<State>(initialState);
 
@@ -415,12 +355,9 @@ export function TransitOpsProvider({ children }: { children: ReactNode }) {
         }
         await refreshData();
       },
-<<<<<<< Updated upstream
-=======
       updateSettings: (patch) => {
         setState((s) => ({ ...s, settings: { ...s.settings, ...patch } }));
       },
->>>>>>> Stashed changes
     };
   }, [state]);
 

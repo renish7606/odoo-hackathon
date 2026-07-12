@@ -1,8 +1,4 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-<<<<<<< Updated upstream
-import { LayoutDashboard, Truck, Users, Route as RouteIcon, Wrench, LineChart, LogOut, Bus } from "lucide-react";
-import type { ReactNode } from "react";
-=======
 import {
   BarChart3,
   Bus,
@@ -19,7 +15,6 @@ import {
   Wrench,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
->>>>>>> Stashed changes
 import { useStore } from "@/lib/transitops-store";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -35,11 +30,8 @@ const nav = [
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
-<<<<<<< Updated upstream
-=======
 type ThemeMode = "dark" | "light";
 
->>>>>>> Stashed changes
 export function AppShell({ children }: { children: ReactNode }) {
   const { session, logout } = useStore();
   const navigate = useNavigate();
