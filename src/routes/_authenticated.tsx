@@ -8,12 +8,12 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 function AuthedLayout() {
-  const { session } = useStore();
+  const { session, isHydratingAuth } = useStore();
   const navigate = useNavigate();
   useEffect(() => {
-    if (!session) navigate({ to: "/auth" });
-  }, [session, navigate]);
-  if (!session) return null;
+    if (!isHydratingAuth && !session) navigate({ to: "/auth" });
+  }, [session, isHydratingAuth, navigate]);
+  if (isHydratingAuth || !session) return null;
   return (
     <AppShell>
       <Outlet />

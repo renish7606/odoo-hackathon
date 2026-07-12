@@ -101,13 +101,17 @@ function AuthPage() {
         return;
       }
 
+      localStorage.setItem("transitops_token", data.token);
       logout();
-      login({ email, role });
-      
-      if (data.token) {
-        localStorage.setItem("transitops_token", data.token);
-      }
 
+      const roleMap: Record<string, Role> = {
+        FleetManager: "Fleet Manager",
+        Driver: "Dispatcher",
+        SafetyOfficer: "Safety Officer",
+        FinancialAnalyst: "Financial Analyst"
+      };
+
+      login({ email: data.user.email, role: roleMap[data.user.role] || role });
       navigate({ to: "/dashboard" });
     } catch (err) {
       console.error(err);
@@ -156,7 +160,9 @@ function AuthPage() {
           <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? "Signing in..." : "Continue"}
           </Button>
-          <p className="text-[11px] text-center text-slate-500">Demo build — only registered mock emails (e.g. john.fleet@transitops.com) with their matching designated role + 6+ char password works.</p>
+          <p className="text-[11px] text-center text-slate-500">
+            Demo build — only registered mock emails (e.g. john.fleet@transitops.com) with their matching designated role + 6+ char password works.
+          </p>
         </form>
       </div>
       <AlertDialog open={isLockedAlertOpen} onOpenChange={setIsLockedAlertOpen}>

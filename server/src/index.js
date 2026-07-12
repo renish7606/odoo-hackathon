@@ -20,6 +20,10 @@ const analyticsRoutes = require('./routes/analytics.routes');
 // Import error handler
 const errorHandler = require('./middleware/errorHandler');
 
+// Import jobs
+const { startLicenseExpiryJob } = require('./jobs/licenseExpiryJob');
+
+
 // Initialize Express app
 const app = express();
 const prisma = new PrismaClient();
@@ -84,6 +88,10 @@ async function start() {
     // Test database connection
     await prisma.$connect();
     console.log('✅ Database connected successfully');
+
+    // Initialize scheduled jobs
+    startLicenseExpiryJob();
+
 
     app.listen(env.PORT, () => {
       console.log(`\n🚀 TransitOps Backend running on http://localhost:${env.PORT}`);
