@@ -1,5 +1,15 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Truck, Users, Route as RouteIcon, Wrench, LineChart, LogOut, Bus } from "lucide-react";
+import {
+  BarChart3,
+  Bus,
+  LayoutDashboard,
+  LineChart,
+  LogOut,
+  Route as RouteIcon,
+  Truck,
+  Users,
+  Wrench,
+} from "lucide-react";
 import type { ReactNode } from "react";
 import { useStore } from "@/lib/transitops-store";
 import { Button } from "@/components/ui/button";
@@ -11,6 +21,7 @@ const nav = [
   { to: "/drivers", label: "Drivers", icon: Users },
   { to: "/trips", label: "Trips", icon: RouteIcon },
   { to: "/maintenance", label: "Maintenance", icon: Wrench },
+  { to: "/analysis", label: "Analysis", icon: BarChart3 },
   { to: "/reports", label: "Reports", icon: LineChart },
 ] as const;
 
