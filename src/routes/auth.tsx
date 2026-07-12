@@ -34,6 +34,28 @@ function AuthPage() {
   const [isLockedAlertOpen, setIsLockedAlertOpen] = useState(false);
   const [lockoutErrorMsg, setLockoutErrorMsg] = useState("");
 
+  const allowedEmails = [
+    "fleet@transitops.com",
+    "driver@transitops.com",
+    "safety@transitops.com",
+    "finance@transitops.com",
+    "john.fleet@transitops.com",
+    "mike.driver@transitops.com",
+    "lisa.safety@transitops.com",
+    "david.finance@transitops.com",
+  ];
+
+  const roleMapping: Record<string, Role> = {
+    "fleet@transitops.com": "Fleet Manager",
+    "john.fleet@transitops.com": "Fleet Manager",
+    "driver@transitops.com": "Dispatcher",
+    "mike.driver@transitops.com": "Dispatcher",
+    "safety@transitops.com": "Safety Officer",
+    "lisa.safety@transitops.com": "Safety Officer",
+    "finance@transitops.com": "Financial Analyst",
+    "david.finance@transitops.com": "Financial Analyst",
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const nextErrors: typeof errors = {};

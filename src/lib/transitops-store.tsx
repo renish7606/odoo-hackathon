@@ -64,6 +64,7 @@ export interface Activity {
 export interface Session {
   email: string;
   role: Role;
+  token: string;
 }
 
 export interface Settings {
