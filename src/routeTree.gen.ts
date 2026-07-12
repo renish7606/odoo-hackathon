@@ -16,6 +16,7 @@ import { Route as AuthenticatedVehiclesRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedTripsRouteImport } from './routes/_authenticated.trips'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated.reports'
 import { Route as AuthenticatedMaintenanceRouteImport } from './routes/_authenticated.maintenance'
+import { Route as AuthenticatedFleetRouteImport } from './routes/_authenticated.fleet'
 import { Route as AuthenticatedDriversRouteImport } from './routes/_authenticated.drivers'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
 import { Route as AuthenticatedAnalysisRouteImport } from './routes/_authenticated.analysis'
@@ -55,6 +56,11 @@ const AuthenticatedMaintenanceRoute =
     path: '/maintenance',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedFleetRoute = AuthenticatedFleetRouteImport.update({
+  id: '/fleet',
+  path: '/fleet',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedDriversRoute = AuthenticatedDriversRouteImport.update({
   id: '/drivers',
   path: '/drivers',
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/analysis': typeof AuthenticatedAnalysisRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/drivers': typeof AuthenticatedDriversRoute
+  '/fleet': typeof AuthenticatedFleetRoute
   '/maintenance': typeof AuthenticatedMaintenanceRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/trips': typeof AuthenticatedTripsRoute
@@ -88,6 +95,7 @@ export interface FileRoutesByTo {
   '/analysis': typeof AuthenticatedAnalysisRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/drivers': typeof AuthenticatedDriversRoute
+  '/fleet': typeof AuthenticatedFleetRoute
   '/maintenance': typeof AuthenticatedMaintenanceRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/trips': typeof AuthenticatedTripsRoute
@@ -101,6 +109,7 @@ export interface FileRoutesById {
   '/_authenticated/analysis': typeof AuthenticatedAnalysisRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/drivers': typeof AuthenticatedDriversRoute
+  '/_authenticated/fleet': typeof AuthenticatedFleetRoute
   '/_authenticated/maintenance': typeof AuthenticatedMaintenanceRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/trips': typeof AuthenticatedTripsRoute
@@ -114,6 +123,7 @@ export interface FileRouteTypes {
     | '/analysis'
     | '/dashboard'
     | '/drivers'
+    | '/fleet'
     | '/maintenance'
     | '/reports'
     | '/trips'
@@ -125,6 +135,7 @@ export interface FileRouteTypes {
     | '/analysis'
     | '/dashboard'
     | '/drivers'
+    | '/fleet'
     | '/maintenance'
     | '/reports'
     | '/trips'
@@ -137,6 +148,7 @@ export interface FileRouteTypes {
     | '/_authenticated/analysis'
     | '/_authenticated/dashboard'
     | '/_authenticated/drivers'
+    | '/_authenticated/fleet'
     | '/_authenticated/maintenance'
     | '/_authenticated/reports'
     | '/_authenticated/trips'
@@ -200,6 +212,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMaintenanceRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/fleet': {
+      id: '/_authenticated/fleet'
+      path: '/fleet'
+      fullPath: '/fleet'
+      preLoaderRoute: typeof AuthenticatedFleetRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/drivers': {
       id: '/_authenticated/drivers'
       path: '/drivers'
@@ -228,6 +247,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAnalysisRoute: typeof AuthenticatedAnalysisRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDriversRoute: typeof AuthenticatedDriversRoute
+  AuthenticatedFleetRoute: typeof AuthenticatedFleetRoute
   AuthenticatedMaintenanceRoute: typeof AuthenticatedMaintenanceRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedTripsRoute: typeof AuthenticatedTripsRoute
@@ -238,6 +258,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAnalysisRoute: AuthenticatedAnalysisRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDriversRoute: AuthenticatedDriversRoute,
+  AuthenticatedFleetRoute: AuthenticatedFleetRoute,
   AuthenticatedMaintenanceRoute: AuthenticatedMaintenanceRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedTripsRoute: AuthenticatedTripsRoute,

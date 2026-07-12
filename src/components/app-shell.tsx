@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 
 const nav = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/vehicles", label: "Vehicles", icon: Truck },
+  { to: "/fleet", label: "Fleet", icon: Truck },
   { to: "/drivers", label: "Drivers", icon: Users },
   { to: "/trips", label: "Trips", icon: RouteIcon },
   { to: "/maintenance", label: "Maintenance", icon: Wrench },
