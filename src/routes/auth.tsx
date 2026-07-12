@@ -160,9 +160,15 @@ function AuthPage() {
           <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? "Signing in..." : "Continue"}
           </Button>
-          <p className="text-[11px] text-center text-slate-500">
-            Demo build — only registered mock emails (e.g. john.fleet@transitops.com) with their matching designated role + 6+ char password works.
-          </p>
+          <div className="pt-2">
+            <p className="text-[11px] text-center text-slate-500 mb-2">Quick Login for Judges (pw: password123)</p>
+            <div className="flex flex-wrap gap-2 justify-center">
+              <button type="button" onClick={() => { setEmail('fleet@transitops.com'); setPassword('password123'); }} className="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded transition-colors" disabled={isSubmitting}>Fleet Manager</button>
+              <button type="button" onClick={() => { setEmail('driver@transitops.com'); setPassword('password123'); }} className="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded transition-colors" disabled={isSubmitting}>Driver</button>
+              <button type="button" onClick={() => { setEmail('safety@transitops.com'); setPassword('password123'); }} className="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded transition-colors" disabled={isSubmitting}>Safety Officer</button>
+              <button type="button" onClick={() => { setEmail('finance@transitops.com'); setPassword('password123'); }} className="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded transition-colors" disabled={isSubmitting}>Finance Analyst</button>
+            </div>
+          </div>
         </form>
       </div>
       <AlertDialog open={isLockedAlertOpen} onOpenChange={setIsLockedAlertOpen}>
