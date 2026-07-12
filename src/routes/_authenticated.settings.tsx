@@ -42,18 +42,18 @@ const columns: { key: keyof Omit<RbacRow, "role">; label: string }[] = [
 function AccessBadge({ level }: { level: AccessLevel }) {
   if (level === "full")
     return (
-      <span className="inline-flex items-center gap-1 text-emerald-600">
+      <span className="mx-auto inline-flex h-7 w-14 items-center justify-center rounded-full text-emerald-600 dark:text-emerald-300">
         <Check className="h-4 w-4 stroke-[2.5]" />
       </span>
     );
   if (level === "view")
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 text-[11px] font-semibold border border-sky-200">
+      <span className="mx-auto inline-flex h-7 w-14 items-center justify-center rounded-full border border-sky-200 bg-sky-50 text-[11px] font-semibold text-sky-700 dark:border-sky-400/30 dark:bg-sky-500/15 dark:text-sky-200">
         view
       </span>
     );
   return (
-    <span className="text-muted-foreground">
+    <span className="mx-auto inline-flex h-7 w-14 items-center justify-center rounded-full text-muted-foreground">
       <Minus className="h-4 w-4" />
     </span>
   );
@@ -63,7 +63,7 @@ function SectionCard({ title, icon: Icon, children }: { title: string; icon: Rea
   return (
     <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
       <div className="flex items-center gap-2.5 px-6 py-4 border-b border-border bg-muted/60">
-        <div className="h-8 w-8 rounded-lg bg-primary text-white grid place-items-center">
+        <div className="h-8 w-8 rounded-lg bg-primary text-primary-foreground grid place-items-center">
           <Icon className="h-4 w-4" />
         </div>
         <h2 className="text-sm font-semibold text-foreground tracking-wide">{title}</h2>
@@ -115,8 +115,8 @@ function SettingsPage() {
           className={cn(
             "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all",
             isDirty
-              ? "bg-primary text-white hover:bg-primary/90 shadow-sm"
-              : "bg-slate-100 text-muted-foreground cursor-not-allowed",
+              ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
+              : "bg-muted text-muted-foreground cursor-not-allowed",
           )}
         >
           {saved ? (
@@ -197,30 +197,36 @@ function SettingsPage() {
           Access levels are fixed by role.&nbsp;
           <span className="inline-flex items-center gap-1 text-emerald-600 font-medium"><Check className="h-3 w-3" /> Full</span>
           &nbsp;= create / edit / delete&nbsp;&nbsp;·&nbsp;&nbsp;
-          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-sky-50 text-sky-700 text-[10px] font-semibold border border-sky-200">view</span>
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-sky-50 text-sky-700 text-[10px] font-semibold border border-sky-200 dark:bg-sky-500/15 dark:text-sky-200 dark:border-sky-400/30">view</span>
           &nbsp;= read-only&nbsp;&nbsp;·&nbsp;&nbsp;
           <span className="text-muted-foreground"><Minus className="h-3 w-3 inline" /></span>
           &nbsp;= no access
         </p>
 
         <div className="overflow-x-auto rounded-lg border border-border">
-          <table className="min-w-full text-sm">
+          <table className="min-w-full table-fixed text-sm">
+            <colgroup>
+              <col className="w-56" />
+              {columns.map((c) => (
+                <col key={c.key} className="w-[18%]" />
+              ))}
+            </colgroup>
             <thead>
               <tr className="bg-muted border-b border-border">
-                <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground w-44">
+                <th className="h-12 px-5 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                   Role
                 </th>
                 {columns.map((c) => (
                   <th
                     key={c.key}
-                    className="px-5 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground"
+                    className="h-12 px-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground"
                   >
                     {c.label}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-border">
               {rbacData.map((row, i) => (
                 <tr
                   key={row.role}
@@ -229,11 +235,11 @@ function SettingsPage() {
                     i % 2 === 0 ? "bg-card" : "bg-muted/30",
                   )}
                 >
-                  <td className="px-5 py-4">
+                  <td className="h-16 px-5 align-middle">
                     <span className="font-medium text-foreground">{row.role}</span>
                   </td>
                   {columns.map((c) => (
-                    <td key={c.key} className="px-5 py-4 text-center">
+                    <td key={c.key} className="h-16 px-3 text-center align-middle">
                       <AccessBadge level={row[c.key]} />
                     </td>
                   ))}

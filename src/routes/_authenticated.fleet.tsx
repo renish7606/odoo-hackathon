@@ -120,7 +120,7 @@ function FilterPill({
       className={cn(
         "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium border transition-all duration-150",
         active
-          ? "bg-card text-white border-border shadow-sm"
+          ? "bg-primary text-primary-foreground border-primary shadow-sm"
           : "bg-card text-muted-foreground border-border hover:bg-muted hover:border-border",
       )}
     >
@@ -129,7 +129,7 @@ function FilterPill({
         <span
           className={cn(
             "text-[10px] rounded-full px-1.5 py-0.5 min-w-[18px] text-center font-semibold",
-            active ? "bg-card/20 text-white" : "bg-muted text-muted-foreground",
+            active ? "bg-primary-foreground/20 text-primary-foreground" : "bg-muted text-muted-foreground",
           )}
         >
           {count}

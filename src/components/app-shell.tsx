@@ -71,7 +71,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen bg-muted text-foreground transition-colors duration-300 dark:bg-card ">
       <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-card/90 transition-colors duration-300 dark:border-border dark:bg-card/95">
         <div className="flex h-16 items-center gap-3 border-b border-border px-4 dark:border-border">
-          <div className="grid h-9 w-9 place-items-center rounded-md bg-card text-white dark:bg-muted dark:text-foreground">
+          <div className="grid h-9 w-9 place-items-center rounded-md bg-primary text-primary-foreground">
             <Bus className="h-4 w-4" />
           </div>
           <div>

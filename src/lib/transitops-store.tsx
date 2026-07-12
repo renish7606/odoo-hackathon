@@ -402,6 +402,7 @@ export function TransitOpsProvider({ children }: { children: ReactNode }) {
           vehicle_id: e.vehicleId,
           liters: e.liters,
           cost: e.amount,
+          date: e.date,
         }),
       });
       handleUnauthorized(res);
@@ -414,6 +415,7 @@ export function TransitOpsProvider({ children }: { children: ReactNode }) {
           vehicle_id: e.vehicleId,
           type: e.kind,
           cost: e.amount,
+          date: e.date,
         }),
       });
       handleUnauthorized(res);
