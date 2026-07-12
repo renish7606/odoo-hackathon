@@ -8,6 +8,6 @@ const router = Router();
 router.use(protect);
 
 router.get('/', permit('FleetManager', 'FinancialAnalyst'), getExpenses);
-router.post('/', permit('FleetManager'), validateExpense, createExpense);
+router.post('/', permit('FleetManager', 'FinancialAnalyst'), validateExpense, createExpense);
 
 module.exports = router;

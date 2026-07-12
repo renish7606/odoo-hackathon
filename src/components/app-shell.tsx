@@ -18,6 +18,7 @@ import {
 import { useStore } from "@/lib/transitops-store";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { canAccessPage } from "@/lib/permissions";
 
 const nav = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -81,6 +82,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
         <nav className="flex-1 space-y-1 p-2">
           {nav.map((n) => {
+            if (!canAccessPage(session?.role, n.to)) return null;
             const active = pathname.startsWith(n.to);
             return (
               <Link

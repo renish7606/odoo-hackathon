@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StatusPill } from "@/components/status-pill";
+import { canMutate } from "@/lib/permissions";
 import { useStore, type TripStatus } from "@/lib/transitops-store";
 import { toast } from "sonner";
 
@@ -14,7 +15,7 @@ export const Route = createFileRoute("/_authenticated/trips")({
 });
 
 function TripsPage() {
-  const { vehicles, drivers, trips, addTrip, updateTripStatus } = useStore();
+  const { vehicles, drivers, trips, addTrip, updateTripStatus, session } = useStore();
   const availableVehicles = vehicles.filter((v) => v.status === "Available");
   const availableDrivers = drivers.filter((d) => d.status === "Available");
 
@@ -48,8 +49,9 @@ function TripsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        <div className="lg:col-span-2 rounded-lg border border-border bg-card p-4 space-y-3 h-fit">
-          <h2 className="text-sm font-semibold text-foreground">Create new trip</h2>
+        {canMutate(session?.role, "trips") && (
+          <div className="lg:col-span-2 rounded-lg border border-border bg-card p-4 space-y-3 h-fit">
+            <h2 className="text-sm font-semibold text-foreground">Create new trip</h2>
           <Field label="Source"><Input value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })} /></Field>
           <Field label="Destination"><Input value={form.destination} onChange={(e) => setForm({ ...form, destination: e.target.value })} /></Field>
           <Field label="Available Vehicle">
@@ -80,10 +82,11 @@ function TripsPage() {
             </div>
           )}
 
-          <Button disabled={!canSubmit} onClick={submit} className="w-full">Dispatch trip</Button>
-        </div>
+            <Button disabled={!canSubmit} onClick={submit} className="w-full">Dispatch trip</Button>
+          </div>
+        )}
 
-        <div className="lg:col-span-3 rounded-lg border border-border bg-card">
+        <div className={canMutate(session?.role, "trips") ? "lg:col-span-3 rounded-lg border border-border bg-card" : "lg:col-span-5 rounded-lg border border-border bg-card"}>
           <div className="px-4 py-3 border-b border-border"><h2 className="text-sm font-semibold text-foreground">Trips</h2></div>
           <ul className="divide-y divide-border">
             {trips.length === 0 && <li className="p-6 text-sm text-muted-foreground text-center">No trips yet.</li>}
@@ -96,7 +99,7 @@ function TripsPage() {
                   </div>
                 </div>
                 <StatusPill value={t.status} />
-                {(t.status === "Draft" || t.status === "Dispatched") && (
+                {canMutate(session?.role, "trips") && (t.status === "Draft" || t.status === "Dispatched") && (
                   <Select value={t.status} onValueChange={async (v) => {
                     try {
                       await updateTripStatus(t.id, v as TripStatus);

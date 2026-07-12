@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { canMutate } from "@/lib/permissions";
 import { useStore, type ExpenseKind } from "@/lib/transitops-store";
 import { cn, formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
@@ -40,7 +41,7 @@ const PERIOD_OPTIONS: Array<{ value: PeriodPreset; label: string }> = [
 const DATE_FORMATTER = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" });
 
 function ReportsPage() {
-  const { vehicles, drivers, trips, expenses, maintenance, addExpense, settings } = useStore();
+  const { vehicles, drivers, trips, expenses, maintenance, addExpense, settings, session } = useStore();
   const [period, setPeriod] = useState<PeriodPreset>("last90");
   const [customStart, setCustomStart] = useState(() => dateInput(addDays(new Date(), -89)));
   const [customEnd, setCustomEnd] = useState(() => dateInput(new Date()));
@@ -420,74 +421,76 @@ function ReportsPage() {
         </section>
       </div>
 
-      <section className="rounded-lg border border-border bg-card p-4">
-        <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-sm font-semibold text-foreground">Log expense</h2>
-            <p className="text-xs text-muted-foreground">Entries feed the report ledger and period exports.</p>
+      {canMutate(session?.role, "fuel_exp") && (
+        <section className="rounded-lg border border-border bg-card p-4">
+          <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-sm font-semibold text-foreground">Log expense</h2>
+              <p className="text-xs text-muted-foreground">Entries feed the report ledger and period exports.</p>
+            </div>
+            <Badge variant="secondary">{settings.currency}</Badge>
           </div>
-          <Badge variant="secondary">{settings.currency}</Badge>
-        </div>
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-6">
-          <Field label="Type">
-            <Select value={form.kind} onValueChange={(value) => setForm({ ...form, kind: value as ExpenseKind, liters: value === "Fuel Log" ? form.liters : "" })}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {(["Fuel Log", "Toll", "Service fee"] as ExpenseKind[]).map((kind) => (
-                  <SelectItem key={kind} value={kind}>
-                    {kind}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-          <Field label="Vehicle">
-            <Select value={form.vehicleId} onValueChange={(value) => setForm({ ...form, vehicleId: value })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select" />
-              </SelectTrigger>
-              <SelectContent>
-                {vehicles.map((vehicle) => (
-                  <SelectItem key={vehicle.id} value={vehicle.id}>
-                    {vehicle.regNumber} - {vehicle.model}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-          <Field label="Fuel liters">
-            <Input
-              type="number"
-              inputMode="decimal"
-              min="0"
-              placeholder="0"
-              value={form.liters}
-              disabled={form.kind !== "Fuel Log"}
-              onChange={(event) => setForm({ ...form, liters: event.target.value })}
-            />
-          </Field>
-          <Field label={`Amount (${settings.currency})`}>
-            <Input
-              type="number"
-              inputMode="decimal"
-              min="0"
-              placeholder="0"
-              value={form.amount}
-              onChange={(event) => setForm({ ...form, amount: event.target.value })}
-            />
-          </Field>
-          <Field label="Date">
-            <Input type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} />
-          </Field>
-          <div className="flex items-end">
-            <Button onClick={submit} className="w-full">
-              Add entry
-            </Button>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-6">
+            <Field label="Type">
+              <Select value={form.kind} onValueChange={(value) => setForm({ ...form, kind: value as ExpenseKind, liters: value === "Fuel Log" ? form.liters : "" })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(["Fuel Log", "Toll", "Service fee"] as ExpenseKind[]).map((kind) => (
+                    <SelectItem key={kind} value={kind}>
+                      {kind}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field label="Vehicle">
+              <Select value={form.vehicleId} onValueChange={(value) => setForm({ ...form, vehicleId: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select" />
+                </SelectTrigger>
+                <SelectContent>
+                  {vehicles.map((vehicle) => (
+                    <SelectItem key={vehicle.id} value={vehicle.id}>
+                      {vehicle.regNumber} - {vehicle.model}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field label="Fuel liters">
+              <Input
+                type="number"
+                inputMode="decimal"
+                min="0"
+                placeholder="0"
+                value={form.liters}
+                disabled={form.kind !== "Fuel Log"}
+                onChange={(event) => setForm({ ...form, liters: event.target.value })}
+              />
+            </Field>
+            <Field label={`Amount (${settings.currency})`}>
+              <Input
+                type="number"
+                inputMode="decimal"
+                min="0"
+                placeholder="0"
+                value={form.amount}
+                onChange={(event) => setForm({ ...form, amount: event.target.value })}
+              />
+            </Field>
+            <Field label="Date">
+              <Input type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} />
+            </Field>
+            <div className="flex items-end">
+              <Button onClick={submit} className="w-full">
+                <Plus className="mr-2 h-4 w-4" /> Add entry
+              </Button>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <div className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
         <section className="rounded-lg border border-border bg-card">

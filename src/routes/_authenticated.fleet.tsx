@@ -56,6 +56,7 @@ import { useStore, Vehicle, VehicleStatus, VehicleType } from "@/lib/transitops-
 import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { canMutate } from "@/lib/permissions";
 
 export const Route = createFileRoute("/_authenticated/fleet")({
   component: FleetPage,
@@ -183,7 +184,7 @@ type SortDir = "asc" | "desc";
 /*              FLEET PAGE                 */
 /* ═══════════════════════════════════════ */
 function FleetPage() {
-  const { vehicles, addVehicle, updateVehicle, trips, maintenance, settings } =
+  const { vehicles, addVehicle, updateVehicle, trips, maintenance, settings, session } =
     useStore();
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
@@ -305,114 +306,115 @@ function FleetPage() {
             registry.
           </p>
         </div>
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild>
-            <Button className="shadow-sm">
-              <Plus className="h-4 w-4 mr-1.5" /> Add Vehicle
-            </Button>
-          </SheetTrigger>
-          <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-            <SheetHeader>
-              <SheetTitle>Register New Vehicle</SheetTitle>
-            </SheetHeader>
-            <div className="space-y-4 p-4">
-              <Field label="Registration Number (unique)">
-                <Input
-                  placeholder="e.g. MH-12-AB-1234"
-                  value={form.regNumber}
-                  onChange={(e) =>
-                    setForm({ ...form, regNumber: e.target.value })
-                  }
-                />
-              </Field>
-              <Field label="Model / Make">
-                <Input
-                  placeholder="e.g. Tata Prima 4028"
-                  value={form.model}
-                  onChange={(e) => setForm({ ...form, model: e.target.value })}
-                />
-              </Field>
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Vehicle Type">
+        {canMutate(session?.role, "fleet") && (
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetTrigger asChild>
+              <Button className="shadow-sm">
+                <Plus className="h-4 w-4 mr-1.5" /> Add Vehicle
+              </Button>
+            </SheetTrigger>
+            <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+              <SheetHeader>
+                <SheetTitle>Register New Vehicle</SheetTitle>
+              </SheetHeader>
+              <div className="space-y-4 p-4">
+                <Field label="Registration Number (unique)">
+                  <Input
+                    placeholder="e.g. MH-12-AB-1234"
+                    value={form.regNumber}
+                    onChange={(e) =>
+                      setForm({ ...form, regNumber: e.target.value })
+                    }
+                  />
+                </Field>
+                <Field label="Model / Make">
+                  <Input
+                    placeholder="e.g. Tata Prima 4028"
+                    value={form.model}
+                    onChange={(e) => setForm({ ...form, model: e.target.value })}
+                  />
+                </Field>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Vehicle Type">
+                    <Select
+                      value={form.type}
+                      onValueChange={(v) =>
+                        setForm({ ...form, type: v as VehicleType })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Truck">Truck</SelectItem>
+                        <SelectItem value="Van">Van</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  <Field label="Region">
+                    <Input
+                      placeholder="e.g. West"
+                      value={form.region}
+                      onChange={(e) =>
+                        setForm({ ...form, region: e.target.value })
+                      }
+                    />
+                  </Field>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Max Load (kg)">
+                    <Input
+                      type="number"
+                      value={form.maxLoad}
+                      onChange={(e) =>
+                        setForm({ ...form, maxLoad: +e.target.value })
+                      }
+                    />
+                  </Field>
+                  <Field label="Odometer (km)">
+                    <Input
+                      type="number"
+                      value={form.odometer}
+                      onChange={(e) =>
+                        setForm({ ...form, odometer: +e.target.value })
+                      }
+                    />
+                  </Field>
+                </div>
+                <Field label={`Acquisition Cost (${settings.currency})`}>
+                  <Input
+                    type="number"
+                    value={form.cost}
+                    onChange={(e) => setForm({ ...form, cost: +e.target.value })}
+                  />
+                </Field>
+                <Field label="Initial Status">
                   <Select
-                    value={form.type}
+                    value={form.status}
                     onValueChange={(v) =>
-                      setForm({ ...form, type: v as VehicleType })
+                      setForm({ ...form, status: v as VehicleStatus })
                     }
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Truck">Truck</SelectItem>
-                      <SelectItem value="Van">Van</SelectItem>
+                      {(
+                        [
+                          "Available",
+                          "On Trip",
+                          "In Shop",
+                          "Retired",
+                        ] as VehicleStatus[]
+                      ).map((s) => (
+                        <SelectItem key={s} value={s}>
+                          {s}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </Field>
-                <Field label="Region">
-                  <Input
-                    placeholder="e.g. West"
-                    value={form.region}
-                    onChange={(e) =>
-                      setForm({ ...form, region: e.target.value })
-                    }
-                  />
-                </Field>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Max Load (kg)">
-                  <Input
-                    type="number"
-                    value={form.maxLoad}
-                    onChange={(e) =>
-                      setForm({ ...form, maxLoad: +e.target.value })
-                    }
-                  />
-                </Field>
-                <Field label="Odometer (km)">
-                  <Input
-                    type="number"
-                    value={form.odometer}
-                    onChange={(e) =>
-                      setForm({ ...form, odometer: +e.target.value })
-                    }
-                  />
-                </Field>
-              </div>
-              <Field label={`Acquisition Cost (${settings.currency})`}>
-                <Input
-                  type="number"
-                  value={form.cost}
-                  onChange={(e) => setForm({ ...form, cost: +e.target.value })}
-                />
-              </Field>
-              <Field label="Initial Status">
-                <Select
-                  value={form.status}
-                  onValueChange={(v) =>
-                    setForm({ ...form, status: v as VehicleStatus })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(
-                      [
-                        "Available",
-                        "On Trip",
-                        "In Shop",
-                        "Retired",
-                      ] as VehicleStatus[]
-                    ).map((s) => (
-                      <SelectItem key={s} value={s}>
-                        {s}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-            </div>
             <SheetFooter className="p-4">
               <Button onClick={submit} className="w-full">
                 Save Vehicle
@@ -420,6 +422,7 @@ function FleetPage() {
             </SheetFooter>
           </SheetContent>
         </Sheet>
+        )}
       </div>
 
       {/* ── KPI Cards ── */}

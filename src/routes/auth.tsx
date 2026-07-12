@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useStore, type Role } from "@/lib/transitops-store";
+import { getDefaultRoute } from "@/lib/permissions";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -113,7 +114,7 @@ function AuthPage() {
       const userRole = roleMap[data.user.role] || role;
 
       login({ email: data.user.email, role: userRole, token: data.token });
-      navigate({ to: "/dashboard" });
+      navigate({ to: getDefaultRoute(userRole) });
     } catch (err) {
       console.error(err);
       setErrors({ password: "Failed to connect to backend server. Make sure it is running." });

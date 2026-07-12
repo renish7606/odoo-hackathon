@@ -184,19 +184,17 @@ export function TransitOpsProvider({ children }: { children: ReactNode }) {
       ]);
 
       // Handle 401 on any response (W-13)
-      if (vRes.status === 401 || dRes.status === 401) {
+      if (vRes.status === 401 || dRes.status === 401 || tRes.status === 401 || mRes.status === 401 || eRes.status === 401 || aRes.status === 401) {
         handleUnauthorized(vRes.status === 401 ? vRes : dRes);
         return;
       }
 
-      if (!vRes.ok) throw new Error("Failed to fetch vehicles");
-      
-      const vData = await vRes.json();
-      const dData = await dRes.json();
-      const tData = await tRes.json();
-      const mData = await mRes.json();
-      const eData = await eRes.json();
-      const dashData = await aRes.json();
+      const vData = vRes.ok ? await vRes.json() : [];
+      const dData = dRes.ok ? await dRes.json() : [];
+      const tData = tRes.ok ? await tRes.json() : [];
+      const mData = mRes.ok ? await mRes.json() : [];
+      const eData = eRes.ok ? await eRes.json() : [];
+      const dashData = aRes.ok ? await aRes.json() : { activity: [] };
 
       setState((s) => ({
         ...s,

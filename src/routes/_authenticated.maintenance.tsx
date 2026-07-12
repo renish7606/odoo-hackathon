@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatusPill } from "@/components/status-pill";
+import { canMutate } from "@/lib/permissions";
 import { formatCurrency } from "@/lib/utils";
 import { useStore, type MaintStatus } from "@/lib/transitops-store";
 import { toast } from "sonner";
@@ -18,7 +19,7 @@ export const Route = createFileRoute("/_authenticated/maintenance")({
 });
 
 function MaintenancePage() {
-  const { vehicles, maintenance, addMaintenance, toggleMaintenance, settings } = useStore();
+  const { vehicles, maintenance, addMaintenance, toggleMaintenance, settings, session } = useStore();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     vehicleId: "", issue: "", cost: 0, entryDate: new Date().toISOString().slice(0, 10), status: "Open" as MaintStatus,
@@ -45,33 +46,37 @@ function MaintenancePage() {
           <h1 className="text-xl font-semibold text-foreground">Repair Logbook</h1>
           <p className="text-sm text-muted-foreground">Track service history and workshop assignments.</p>
         </div>
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild><Button><Plus className="h-4 w-4 mr-1" /> Create Maintenance Record</Button></SheetTrigger>
-          <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-            <SheetHeader><SheetTitle>New maintenance record</SheetTitle></SheetHeader>
-            <div className="space-y-3 p-4">
-              <Field label="Vehicle">
-                <Select value={form.vehicleId} onValueChange={(v) => setForm({ ...form, vehicleId: v })}>
-                  <SelectTrigger><SelectValue placeholder="Select vehicle" /></SelectTrigger>
-                  <SelectContent>
-                    {vehicles.map((v) => <SelectItem key={v.id} value={v.id}>{v.regNumber} · {v.model}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </Field>
-              <Field label="Issue Description"><Input value={form.issue} onChange={(e) => setForm({ ...form, issue: e.target.value })} /></Field>
-              <Field label={`Target Repair Cost (${settings.currency})`}><Input type="number" value={form.cost} onChange={(e) => setForm({ ...form, cost: +e.target.value })} /></Field>
-              <Field label="Entry Date"><Input type="date" value={form.entryDate} onChange={(e) => setForm({ ...form, entryDate: e.target.value })} /></Field>
-              <div className="flex items-center justify-between rounded-md border border-border p-3">
-                <div>
-                  <div className="text-sm font-medium">Log status: {form.status}</div>
-                  <div className="text-[11px] text-muted-foreground">Open moves the vehicle to “In Shop”.</div>
+        {canMutate(session?.role, "fleet") && (
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetTrigger asChild>
+              <Button className="shadow-sm"><Plus className="h-4 w-4 mr-2" /> Log Maintenance</Button>
+            </SheetTrigger>
+            <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+              <SheetHeader><SheetTitle>New maintenance record</SheetTitle></SheetHeader>
+              <div className="space-y-3 p-4">
+                <Field label="Vehicle">
+                  <Select value={form.vehicleId} onValueChange={(v) => setForm({ ...form, vehicleId: v })}>
+                    <SelectTrigger><SelectValue placeholder="Select vehicle" /></SelectTrigger>
+                    <SelectContent>
+                      {vehicles.map((v) => <SelectItem key={v.id} value={v.id}>{v.regNumber} · {v.model}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field label="Issue Description"><Input value={form.issue} onChange={(e) => setForm({ ...form, issue: e.target.value })} /></Field>
+                <Field label={`Target Repair Cost (${settings.currency})`}><Input type="number" value={form.cost} onChange={(e) => setForm({ ...form, cost: +e.target.value })} /></Field>
+                <Field label="Entry Date"><Input type="date" value={form.entryDate} onChange={(e) => setForm({ ...form, entryDate: e.target.value })} /></Field>
+                <div className="flex items-center justify-between rounded-md border border-border p-3">
+                  <div>
+                    <div className="text-sm font-medium">Log status: {form.status}</div>
+                    <div className="text-[11px] text-muted-foreground">Open moves the vehicle to “In Shop”.</div>
+                  </div>
+                  <Switch checked={form.status === "Open"} onCheckedChange={(c) => setForm({ ...form, status: c ? "Open" : "Closed" })} />
                 </div>
-                <Switch checked={form.status === "Open"} onCheckedChange={(c) => setForm({ ...form, status: c ? "Open" : "Closed" })} />
               </div>
-            </div>
-            <SheetFooter className="p-4"><Button onClick={submit} className="w-full">Save record</Button></SheetFooter>
-          </SheetContent>
-        </Sheet>
+              <SheetFooter className="p-4"><Button onClick={submit} className="w-full">Save record</Button></SheetFooter>
+            </SheetContent>
+          </Sheet>
+        )}
       </div>
 
       <div className="flex items-start gap-2 rounded-md border border-orange-200 bg-orange-50 p-3 text-xs text-orange-800">
@@ -104,9 +109,11 @@ function MaintenancePage() {
                 <TableCell>{m.entryDate}</TableCell>
                 <TableCell><StatusPill value={m.status} /></TableCell>
                 <TableCell className="text-right">
-                  <Button size="sm" variant="outline" onClick={() => toggleMaintenance(m.id)}>
-                    Mark {m.status === "Open" ? "Closed" : "Open"}
-                  </Button>
+                  {canMutate(session?.role, "fleet") && (
+                    <Button size="sm" variant="outline" onClick={() => toggleMaintenance(m.id)}>
+                      Mark {m.status === "Open" ? "Closed" : "Open"}
+                    </Button>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
