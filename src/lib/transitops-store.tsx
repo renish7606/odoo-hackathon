@@ -81,6 +81,7 @@ interface State {
   activity: Activity[];
   session: Session | null;
   settings: Settings;
+  isHydratingAuth: boolean;
 }
 
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -88,6 +89,7 @@ const now = () => new Date().toISOString();
 
 const seed: State = {
   session: null,
+  isHydratingAuth: true,
   settings: { depotName: "Gandhinagar Depot", currency: "INR", distanceUnit: "Kilometer" },
   vehicles: [
     { id: uid(), regNumber: "MH-12-AB-1001", model: "Tata Prima 4028", type: "Truck", maxLoad: 25000, odometer: 84210, cost: 45000, status: "Available", region: "West" },
@@ -153,10 +155,38 @@ export function TransitOpsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     setState(loadInitial());
     setHydrated(true);
+    
+    // Auth Hydration
+    const token = localStorage.getItem("transitops_token");
+    if (token) {
+      fetch("/api/auth/me", {
+        headers: { "Authorization": `Bearer ${token}` }
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.user) {
+          const roleMap: Record<string, Role> = {
+            FleetManager: "Fleet Manager",
+            Driver: "Dispatcher",
+            SafetyOfficer: "Safety Officer",
+            FinancialAnalyst: "Financial Analyst"
+          };
+          setState(s => ({ ...s, session: { email: data.user.email, role: roleMap[data.user.role] || "Fleet Manager" }, isHydratingAuth: false }));
+        } else {
+          localStorage.removeItem("transitops_token");
+          setState(s => ({ ...s, session: null, isHydratingAuth: false }));
+        }
+      })
+      .catch(() => {
+        setState(s => ({ ...s, session: null, isHydratingAuth: false }));
+      });
+    } else {
+      setState(s => ({ ...s, session: null, isHydratingAuth: false }));
+    }
   }, []);
 
   useEffect(() => {
-    if (hydrated) localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    if (hydrated) localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...state, session: null })); // Do not persist session in mock store anymore
   }, [state, hydrated]);
 
   const value = useMemo<Ctx>(() => {
@@ -168,7 +198,10 @@ export function TransitOpsProvider({ children }: { children: ReactNode }) {
       login: (session) => {
         setState((s) => ({ ...s, session }));
       },
-      logout: () => setState((s) => ({ ...s, session: null })),
+      logout: () => {
+        localStorage.removeItem("transitops_token");
+        setState((s) => ({ ...s, session: null }));
+      },
       addVehicle: (v) => {
         if (state.vehicles.some((x) => x.regNumber.toLowerCase() === v.regNumber.toLowerCase())) return null;
         const id = uid();

@@ -22,16 +22,42 @@ function AuthPage() {
   const [role, setRole] = useState<Role>("Fleet Manager");
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const nextErrors: typeof errors = {};
     if (!/^\S+@\S+\.\S+$/.test(email)) nextErrors.email = "Enter a valid email address";
     if (password.length < 6) nextErrors.password = "Password must be at least 6 characters";
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
-    logout();
-    login({ email, role });
-    navigate({ to: "/dashboard" });
+    
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      
+      if (!res.ok) {
+        setErrors({ email: data.error || "Login failed" });
+        return;
+      }
+      
+      localStorage.setItem("transitops_token", data.token);
+      logout();
+      
+      const roleMap: Record<string, Role> = {
+        FleetManager: "Fleet Manager",
+        Driver: "Dispatcher",
+        SafetyOfficer: "Safety Officer",
+        FinancialAnalyst: "Financial Analyst"
+      };
+      
+      login({ email: data.user.email, role: roleMap[data.user.role] || "Fleet Manager" });
+      navigate({ to: "/dashboard" });
+    } catch (err) {
+      setErrors({ email: "Network error connecting to API." });
+    }
   };
 
   return (
@@ -71,7 +97,7 @@ function AuthPage() {
             </Select>
           </div>
           <Button type="submit" className="w-full">Continue</Button>
-          <p className="text-[11px] text-center text-slate-500">Demo build — any valid email + 6+ char password works.</p>
+          <p className="text-[11px] text-center text-slate-500">Demo accounts: fleet@, driver@, safety@, finance@transitops.com (pw: password123).</p>
         </form>
       </div>
     </div>
