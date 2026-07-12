@@ -1,8 +1,6 @@
 const jwt = require('jsonwebtoken');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../config/prisma');
 const env = require('../config/env');
-
-const prisma = new PrismaClient();
 
 /**
  * Protect middleware — verifies JWT from Authorization header.

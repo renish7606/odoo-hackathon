@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatusPill } from "@/components/status-pill";
+import { formatCurrency } from "@/lib/utils";
 import { useStore, type MaintStatus } from "@/lib/transitops-store";
 import { toast } from "sonner";
 
@@ -17,18 +18,22 @@ export const Route = createFileRoute("/_authenticated/maintenance")({
 });
 
 function MaintenancePage() {
-  const { vehicles, maintenance, addMaintenance, toggleMaintenance } = useStore();
+  const { vehicles, maintenance, addMaintenance, toggleMaintenance, settings } = useStore();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     vehicleId: "", issue: "", cost: 0, entryDate: new Date().toISOString().slice(0, 10), status: "Open" as MaintStatus,
   });
 
-  const submit = () => {
+  const submit = async () => {
     if (!form.vehicleId || !form.issue) return toast.error("Vehicle and issue description are required");
-    addMaintenance(form);
-    toast.success(form.status === "Open" ? "Log opened — vehicle moved to In Shop" : "Log recorded");
-    setOpen(false);
-    setForm({ vehicleId: "", issue: "", cost: 0, entryDate: new Date().toISOString().slice(0, 10), status: "Open" });
+    try {
+      await addMaintenance({ ...form, cost: form.cost / settings.exchangeRate });
+      toast.success(form.status === "Open" ? "Log opened — vehicle moved to In Shop" : "Log recorded");
+      setOpen(false);
+      setForm({ vehicleId: "", issue: "", cost: 0, entryDate: new Date().toISOString().slice(0, 10), status: "Open" });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create maintenance record");
+    }
   };
 
   const vehicleName = (id: string) => vehicles.find((v) => v.id === id)?.regNumber ?? "—";
@@ -54,7 +59,7 @@ function MaintenancePage() {
                 </Select>
               </Field>
               <Field label="Issue Description"><Input value={form.issue} onChange={(e) => setForm({ ...form, issue: e.target.value })} /></Field>
-              <Field label="Target Repair Cost ($)"><Input type="number" value={form.cost} onChange={(e) => setForm({ ...form, cost: +e.target.value })} /></Field>
+              <Field label={`Target Repair Cost (${settings.currency})`}><Input type="number" value={form.cost} onChange={(e) => setForm({ ...form, cost: +e.target.value })} /></Field>
               <Field label="Entry Date"><Input type="date" value={form.entryDate} onChange={(e) => setForm({ ...form, entryDate: e.target.value })} /></Field>
               <div className="flex items-center justify-between rounded-md border border-border p-3">
                 <div>
@@ -95,7 +100,7 @@ function MaintenancePage() {
               <TableRow key={m.id}>
                 <TableCell className="font-mono text-xs">{vehicleName(m.vehicleId)}</TableCell>
                 <TableCell>{m.issue}</TableCell>
-                <TableCell className="text-right">${m.cost.toLocaleString()}</TableCell>
+                <TableCell className="text-right">{formatCurrency(m.cost, settings.currency, false, settings.exchangeRate)}</TableCell>
                 <TableCell>{m.entryDate}</TableCell>
                 <TableCell><StatusPill value={m.status} /></TableCell>
                 <TableCell className="text-right">

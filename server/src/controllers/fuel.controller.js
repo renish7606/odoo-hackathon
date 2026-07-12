@@ -1,7 +1,5 @@
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../config/prisma');
 const asyncHandler = require('../utils/asyncHandler');
-
-const prisma = new PrismaClient();
 
 /**
  * GET /api/fuel-logs
@@ -23,6 +21,7 @@ const getFuelLogs = asyncHandler(async (req, res) => {
 
 /**
  * POST /api/fuel-logs
+ * Wrapped in $transaction for atomicity with activity log (W-04).
  */
 const createFuelLog = asyncHandler(async (req, res) => {
   const { vehicle_id, trip_id, liters, cost, date } = req.body;
@@ -41,23 +40,27 @@ const createFuelLog = asyncHandler(async (req, res) => {
     }
   }
 
-  const log = await prisma.fuelLog.create({
-    data: {
-      vehicle_id,
-      trip_id: trip_id || null,
-      liters: parseFloat(liters),
-      cost: parseFloat(cost),
-      date: date ? new Date(date) : new Date(),
-    },
-    include: {
-      vehicle: {
-        select: { id: true, registration_number: true, name_model: true },
+  const log = await prisma.$transaction(async (tx) => {
+    const l = await tx.fuelLog.create({
+      data: {
+        vehicle_id,
+        trip_id: trip_id || null,
+        liters: parseFloat(liters),
+        cost: parseFloat(cost),
+        date: date ? new Date(date) : new Date(),
       },
-    },
-  });
+      include: {
+        vehicle: {
+          select: { id: true, registration_number: true, name_model: true },
+        },
+      },
+    });
 
-  await prisma.activity.create({
-    data: { text: `Fuel log added: ${liters}L for ${vehicle.name_model}` },
+    await tx.activity.create({
+      data: { text: `Fuel log added: ${liters}L for ${vehicle.name_model}` },
+    });
+
+    return l;
   });
 
   res.status(201).json(log);

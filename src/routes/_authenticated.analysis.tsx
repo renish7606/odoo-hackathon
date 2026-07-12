@@ -4,12 +4,13 @@ import { useMemo } from "react";
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, XAxis, YAxis } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import { useStore } from "@/lib/transitops-store";
+import { formatCurrency } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/analysis")({
   component: AnalysisPage,
 });
 
-const REVENUE_PER_KM = 2.5;
+const REVENUE_PER_KM = 0.5;
 const monthFormatter = new Intl.DateTimeFormat("en", { month: "short" });
 
 const chartConfig = {
@@ -27,7 +28,8 @@ const chartColors = {
 } as const;
 
 function AnalysisPage() {
-  const { vehicles, drivers, trips, expenses, maintenance } = useStore();
+  const { vehicles, drivers, trips, expenses, maintenance, settings } = useStore();
+  const currency = (val: number) => formatCurrency(val, settings.currency, false, settings.exchangeRate);
 
   const analysis = useMemo(() => {
     const completedTrips = trips.filter((trip) => trip.status === "Completed");
@@ -124,7 +126,7 @@ function AnalysisPage() {
         </div>
         <div className="rounded-md border border-border bg-card px-3 py-2 text-right">
           <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Revenue model</div>
-          <div className="text-sm font-semibold text-foreground">${REVENUE_PER_KM}/km</div>
+          <div className="text-sm font-semibold text-foreground">{currency(REVENUE_PER_KM)}/km</div>
         </div>
       </div>
 
@@ -160,7 +162,7 @@ function AnalysisPage() {
               <BarChart data={analysis.monthlyRevenue} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
                 <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
-                <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => `$${Number(value) / 1000}k`} />
+                <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => formatCurrency(Number(value), settings.currency, true, settings.exchangeRate)} />
                 <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="line" />} />
                 <Bar dataKey="revenue" fill="var(--color-revenue)" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -216,7 +218,7 @@ function AnalysisPage() {
               margin={{ left: 20, right: 16, top: 8, bottom: 0 }}
             >
               <CartesianGrid horizontal={false} strokeDasharray="3 3" />
-              <XAxis type="number" tickLine={false} axisLine={false} tickFormatter={(value) => `$${Number(value) / 1000}k`} />
+              <XAxis type="number" tickLine={false} axisLine={false} tickFormatter={(value) => formatCurrency(Number(value), settings.currency, true, settings.exchangeRate)} />
               <YAxis dataKey="vehicle" type="category" tickLine={false} axisLine={false} width={110} tickMargin={8} />
               <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="line" />} />
               <Bar dataKey="spend" fill="var(--color-spend)" radius={[0, 4, 4, 0]} />
@@ -377,10 +379,6 @@ function Signal({
       </div>
     </div>
   );
-}
-
-function currency(value: number) {
-  return `$${Math.round(value).toLocaleString()}`;
 }
 
 function buildMonthlyRevenue(completedTrips: Array<{ createdAt: string; distance: number }>) {

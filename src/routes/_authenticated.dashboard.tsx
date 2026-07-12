@@ -28,6 +28,8 @@ import {
 import { cn } from "@/lib/utils";
 import { useStore, VehicleType, VehicleStatus, Vehicle } from "@/lib/transitops-store";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { formatCurrency } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
@@ -211,7 +213,7 @@ function Dashboard() {
 }
 
 function useAnalytics(filters: { vehicleType: string; status: string; region: string }) {
-  const { vehicles, trips, drivers, maintenance, expenses, vehicleROI } = useStore();
+  const { vehicles, trips, drivers, maintenance, expenses, vehicleROI, settings } = useStore();
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -258,9 +260,9 @@ function useAnalytics(filters: { vehicleType: string; status: string; region: st
       const totalOperationalCost = filteredExpenses.reduce((sum, e) => sum + e.amount, 0) +
         filteredMaintenance.reduce((sum, m) => sum + m.cost, 0);
 
-      const totalDistance = filteredTrips.filter(t => t.status === "Completed").reduce((sum, t) => sum + t.distance, 0) || 1200;
-      const totalLiters = filteredExpenses.filter(e => e.kind === "Fuel Log" && e.liters).reduce((sum, e) => sum + (e.liters || 0), 0) || 300;
-      const overallFuelEfficiency = totalDistance / totalLiters;
+      const totalDistance = filteredTrips.filter(t => t.status === "Completed").reduce((sum, t) => sum + t.distance, 0);
+      const totalLiters = filteredExpenses.filter(e => e.kind === "Fuel Log" && e.liters).reduce((sum, e) => sum + (e.liters || 0), 0);
+      const overallFuelEfficiency = totalLiters > 0 ? totalDistance / totalLiters : 0;
 
       // Group by Region for the graph
       const regionsMap = new Map<string, { active: number; onTrip: number; cost: number }>();
@@ -327,6 +329,7 @@ function useAnalytics(filters: { vehicleType: string; status: string; region: st
 }
 
 function DashboardContent({ data }: { data: AnalyticsData }) {
+  const { settings } = useStore();
   const primaryMetrics: MetricCardProps[] = [
     {
       label: "Fleet Utilization",
@@ -462,6 +465,7 @@ function MetricCard({
 }
 
 function OperationalChart({ data }: { data: AnalyticsData }) {
+  const { settings } = useStore();
   return (
     <section className="rounded-md border border-border bg-card/[0.86] p-5 shadow-sm shadow-zinc-200/70 backdrop-blur-[2px] dark:border-border dark:bg-card/[0.72] dark:shadow-black/20 sm:p-6">
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
@@ -476,7 +480,7 @@ function OperationalChart({ data }: { data: AnalyticsData }) {
           <ChartStat
             icon={Banknote}
             label="Total Operational Cost"
-            value={`$${decimalFormatter.format(data.totalOperationalCost)}`}
+            value={formatCurrency(data.totalOperationalCost, settings.currency, false, settings.exchangeRate)}
             tone="amber"
           />
           <ChartStat
@@ -515,7 +519,7 @@ function OperationalChart({ data }: { data: AnalyticsData }) {
               axisLine={false}
               tickLine={false}
               tickMargin={10}
-              tickFormatter={(value) => `$${compactFormatter.format(Number(value))}`}
+              tickFormatter={(value) => formatCurrency(Number(value), settings.currency, true, settings.exchangeRate)}
               tick={{ fill: "currentColor", fontSize: 12 }}
             />
             <Tooltip 
@@ -534,7 +538,7 @@ function OperationalChart({ data }: { data: AnalyticsData }) {
             <Bar
               yAxisId="cost"
               dataKey="totalOperationalCost"
-              name="Op. Cost ($)"
+              name={`Op. Cost (${settings.currency})`}
               fill="var(--color-chart-1)"
               radius={[6, 6, 0, 0]}
               barSize={40}
@@ -582,6 +586,7 @@ function OperationalTooltip({
   payload?: TooltipPayload[];
   label?: string;
 }) {
+  const { settings } = useStore();
   if (!active || !payload?.length) return null;
 
   return (
@@ -596,7 +601,7 @@ function OperationalTooltip({
             value={
               entry.dataKey === "fleetUtilizationPercentage" 
                 ? `${percentFormatter.format(entry.value || 0)}%` 
-                : `$${decimalFormatter.format(entry.value || 0)}`
+                : formatCurrency(entry.value || 0, settings.currency, false, settings.exchangeRate)
             }
           />
         ))}
@@ -619,7 +624,7 @@ function TooltipRow({ color, label, value }: { color: string; label: string; val
 
 
 function DashboardBottomRow() {
-  const { trips, vehicles, drivers } = useStore();
+  const { trips, vehicles, drivers, settings } = useStore();
 
   const recentTrips = useMemo(() => {
     return [...trips]

@@ -49,13 +49,13 @@ function AuthPage() {
   const roleMapping: Record<string, Role> = {
     "fleet@transitops.com": "Fleet Manager",
     "john.fleet@transitops.com": "Fleet Manager",
+    "driver@transitops.com": "Dispatcher",
+    "sarah.driver@transitops.com": "Dispatcher",
+    "mike.driver@transitops.com": "Dispatcher",
     "safety@transitops.com": "Safety Officer",
     "lisa.safety@transitops.com": "Safety Officer",
     "finance@transitops.com": "Financial Analyst",
     "david.finance@transitops.com": "Financial Analyst",
-    "driver@transitops.com": "Dispatcher",
-    "sarah.driver@transitops.com": "Dispatcher",
-    "mike.driver@transitops.com": "Dispatcher",
   };
 
   const submit = async (e: React.FormEvent) => {

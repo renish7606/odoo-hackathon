@@ -1,10 +1,8 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../config/prisma');
 const asyncHandler = require('../utils/asyncHandler');
 const env = require('../config/env');
-
-const prisma = new PrismaClient();
 
 const generateToken = (user) => {
   return jwt.sign(
@@ -50,19 +48,8 @@ const register = asyncHandler(async (req, res) => {
 /**
  * POST /api/auth/login
  * Authenticate user with email and password.
+ * Role validation is DB-driven — no hardcoded email lists.
  */
-const ALLOWED_EMAILS = [
-  'fleet@transitops.com',
-  'driver@transitops.com',
-  'safety@transitops.com',
-  'finance@transitops.com',
-  'john.fleet@transitops.com',
-  'sarah.driver@transitops.com',
-  'mike.driver@transitops.com',
-  'lisa.safety@transitops.com',
-  'david.finance@transitops.com'
-];
-
 const DB_ROLE_MAP = {
   'Fleet Manager': 'FleetManager',
   'Safety Officer': 'SafetyOfficer',
@@ -73,17 +60,17 @@ const DB_ROLE_MAP = {
 const login = asyncHandler(async (req, res) => {
   const { email, password, role } = req.body;
 
-  if (!email || !ALLOWED_EMAILS.includes(email.toLowerCase())) {
+  if (!email) {
     return res.status(401).json({ error: 'Invalid email or password.' });
   }
 
-  // Find user by email
+  // Find user by email (DB-driven, no hardcoded allow-list)
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {
     return res.status(401).json({ error: 'Invalid email or password.' });
   }
 
-  // Validate the selected role
+  // Validate the selected role if provided
   if (role) {
     const dbRole = DB_ROLE_MAP[role];
     if (!dbRole || user.role !== dbRole) {

@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const { PrismaClient } = require('@prisma/client');
 
 // Load environment config
 const env = require('./config/env');
@@ -26,7 +25,7 @@ const { startLicenseExpiryJob } = require('./jobs/licenseExpiryJob');
 
 // Initialize Express app
 const app = express();
-const prisma = new PrismaClient();
+const prisma = require('./config/prisma');
 
 // ─── Global Middleware ────────────────────────────────────────
 

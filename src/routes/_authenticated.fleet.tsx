@@ -52,11 +52,8 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatusPill } from "@/components/status-pill";
-import {
-  useStore,
-  type VehicleStatus,
-  type VehicleType,
-} from "@/lib/transitops-store";
+import { useStore, Vehicle, VehicleStatus, VehicleType } from "@/lib/transitops-store";
+import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -186,7 +183,7 @@ type SortDir = "asc" | "desc";
 /*              FLEET PAGE                 */
 /* ═══════════════════════════════════════ */
 function FleetPage() {
-  const { vehicles, addVehicle, updateVehicle, trips, maintenance } =
+  const { vehicles, addVehicle, updateVehicle, trips, maintenance, settings } =
     useStore();
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
@@ -268,7 +265,7 @@ function FleetPage() {
   const submit = () => {
     if (!form.regNumber || !form.model)
       return toast.error("Registration number and model are required");
-    const id = addVehicle(form);
+    const id = addVehicle({ ...form, cost: form.cost / settings.exchangeRate });
     if (!id) return toast.error("Registration number must be unique");
     toast.success("Vehicle added to fleet");
     setOpen(false);
@@ -382,7 +379,7 @@ function FleetPage() {
                   />
                 </Field>
               </div>
-              <Field label="Acquisition Cost ($)">
+              <Field label={`Acquisition Cost (${settings.currency})`}>
                 <Input
                   type="number"
                   value={form.cost}
@@ -432,7 +429,7 @@ function FleetPage() {
           value={totalVehicles}
           icon={Truck}
           accent="bg-muted text-foreground"
-          subtitle={`$${totalFleetValue.toLocaleString()} total value`}
+          subtitle={`${formatCurrency(totalFleetValue, settings.currency, false, settings.exchangeRate)} total value`}
         />
         <KpiCard
           label="Available"
@@ -599,7 +596,7 @@ function FleetPage() {
                   onClick={() => toggleSort("cost")}
                   className="inline-flex items-center gap-1 hover:text-foreground transition-colors ml-auto"
                 >
-                  Value ($)
+                  Value ({settings.currency})
                   <ArrowUpDown className="h-3 w-3" />
                 </button>
               </TableHead>
@@ -649,7 +646,7 @@ function FleetPage() {
                   <OdometerBar km={v.odometer} />
                 </TableCell>
                 <TableCell className="text-right text-sm font-medium tabular-nums text-foreground">
-                  ${v.cost.toLocaleString()}
+                  {formatCurrency(v.cost, settings.currency, false, settings.exchangeRate)}
                 </TableCell>
                 <TableCell>
                   <StatusPill value={v.status} />
@@ -788,7 +785,7 @@ function FleetPage() {
                       Acquisition Cost
                     </div>
                     <div className="text-lg font-semibold text-foreground mt-0.5">
-                      ${detail.cost.toLocaleString()}
+                      {formatCurrency(detail.cost, settings.currency, false, settings.exchangeRate)}
                     </div>
                   </div>
                   <div className="rounded-lg border border-border p-3 col-span-2">
@@ -867,7 +864,7 @@ function FleetPage() {
                               {m.issue}
                             </span>
                             <span className="text-muted-foreground ml-2">
-                              ${m.cost.toLocaleString()}
+                              {formatCurrency(m.cost, settings.currency, false, settings.exchangeRate)}
                             </span>
                           </div>
                           <StatusPill value={m.status} />
