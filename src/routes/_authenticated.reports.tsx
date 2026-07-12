@@ -7,25 +7,30 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useStore, type ExpenseKind } from "@/lib/transitops-store";
+import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/reports")({
   component: ReportsPage,
 });
 
-const REVENUE_PER_KM = 2.5; // demo rate
+const REVENUE_PER_KM = 0.5; // demo rate
 
 function ReportsPage() {
-  const { vehicles, trips, expenses, maintenance, addExpense } = useStore();
+  const { vehicles, trips, expenses, maintenance, addExpense, settings } = useStore();
   const [form, setForm] = useState({
     kind: "Fuel Log" as ExpenseKind, vehicleId: "", liters: 0, amount: 0, date: new Date().toISOString().slice(0, 10),
   });
 
-  const submit = () => {
+  const submit = async () => {
     if (!form.vehicleId || form.amount <= 0) return toast.error("Vehicle and amount are required");
-    addExpense(form);
-    toast.success("Expense logged");
-    setForm({ kind: form.kind, vehicleId: "", liters: 0, amount: 0, date: new Date().toISOString().slice(0, 10) });
+    try {
+      await addExpense({ ...form, amount: form.amount / settings.exchangeRate });
+      toast.success("Expense logged");
+      setForm({ kind: form.kind, vehicleId: "", liters: 0, amount: 0, date: new Date().toISOString().slice(0, 10) });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to log expense");
+    }
   };
 
   const rows = useMemo(() => vehicles.map((v) => {
@@ -43,7 +48,7 @@ function ReportsPage() {
   }), [vehicles, trips, expenses, maintenance]);
 
   const exportCsv = () => {
-    const header = ["Reg Number", "Model", "Distance (km)", "Fuel (L)", "Efficiency (km/L)", "Total Costs ($)", "Revenue ($)", "ROI (%)"];
+    const header = ["Reg Number", "Model", "Distance (km)", "Fuel (L)", "Efficiency (km/L)", `Total Costs (${settings.currency})`, `Revenue (${settings.currency})`, "ROI (%)"];
     const lines = [header.join(",")];
     rows.forEach((r) => lines.push([
       r.v.regNumber, `"${r.v.model}"`, r.distance, r.fuelLiters, r.efficiency.toFixed(2), r.costs.toFixed(2), r.revenue.toFixed(2), r.roi.toFixed(2),
@@ -88,7 +93,7 @@ function ReportsPage() {
           <Field label="Fuel (Liters)">
             <Input type="number" value={form.liters} disabled={form.kind !== "Fuel Log"} onChange={(e) => setForm({ ...form, liters: +e.target.value })} />
           </Field>
-          <Field label="Amount ($)"><Input type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: +e.target.value })} /></Field>
+          <Field label={`Amount (${settings.currency})`}><Input type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: +e.target.value })} /></Field>
           <Field label="Date"><Input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} /></Field>
         </div>
         <div className="mt-3 flex justify-end"><Button onClick={submit}>Add entry</Button></div>
@@ -97,7 +102,7 @@ function ReportsPage() {
       <div className="rounded-lg border border-border bg-card">
         <div className="px-4 py-3 border-b border-border flex items-center justify-between">
           <h2 className="text-sm font-semibold text-foreground">Per-vehicle analytics</h2>
-          <span className="text-[11px] text-muted-foreground">Revenue estimated at ${REVENUE_PER_KM}/km · ROI = (Revenue − Costs) ÷ Acquisition</span>
+          <span className="text-[11px] text-muted-foreground">Revenue estimated at {formatCurrency(REVENUE_PER_KM, settings.currency, false, settings.exchangeRate)}/km · ROI = (Revenue − Costs) ÷ Acquisition</span>
         </div>
         <Table>
           <TableHeader>
@@ -118,8 +123,8 @@ function ReportsPage() {
                 <TableCell className="text-right">{r.distance.toLocaleString()}</TableCell>
                 <TableCell className="text-right">{r.fuelLiters.toLocaleString()}</TableCell>
                 <TableCell className="text-right">{r.efficiency.toFixed(2)}</TableCell>
-                <TableCell className="text-right">${r.costs.toLocaleString()}</TableCell>
-                <TableCell className="text-right">${r.revenue.toLocaleString()}</TableCell>
+                <TableCell className="text-right">{formatCurrency(r.costs, settings.currency, false, settings.exchangeRate)}</TableCell>
+                <TableCell className="text-right">{formatCurrency(r.revenue, settings.currency, false, settings.exchangeRate)}</TableCell>
                 <TableCell className={`text-right font-medium ${r.roi >= 0 ? "text-emerald-700" : "text-red-700"}`}>{r.roi.toFixed(1)}%</TableCell>
               </TableRow>
             ))}

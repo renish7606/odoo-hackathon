@@ -29,7 +29,7 @@ const errorHandler = (err, req, res, next) => {
         });
       default:
         return res.status(400).json({
-          error: `Database error: ${err.message}`,
+          error: 'A database error occurred. Please try again.',
         });
     }
   }

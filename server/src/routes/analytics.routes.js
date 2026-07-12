@@ -1,11 +1,17 @@
 const { Router } = require('express');
 const { getDashboard, getReport, triggerCron } = require('../controllers/analytics.controller');
+const { protect, permit } = require('../middleware/auth');
 
 const router = Router();
 
-// Public routes for hackathon simplicity (or apply auth if needed)
-router.get('/dashboard', getDashboard);
-router.get('/report', getReport);
-router.post('/trigger-cron', triggerCron);
+// All analytics routes require authentication
+router.use(protect);
+
+// Dashboard & reports — accessible to FleetManager and FinancialAnalyst
+router.get('/dashboard', permit('FleetManager', 'FinancialAnalyst'), getDashboard);
+router.get('/report', permit('FleetManager', 'FinancialAnalyst'), getReport);
+
+// Cron trigger — FleetManager only (destructive: suspends drivers)
+router.post('/trigger-cron', permit('FleetManager'), triggerCron);
 
 module.exports = router;

@@ -40,6 +40,13 @@ enum MaintenanceStatus {
   Closed
 }
 
+enum MaintenancePriority {
+  Low
+  Medium
+  High
+  Critical
+}
+
 model User {
   id              String    @id @default(uuid())
   email           String    @unique
@@ -88,6 +95,7 @@ model Driver {
 
   trips Trip[]
 
+  @@index([license_expiry_date, status])
   @@map("drivers")
 }
 
@@ -106,26 +114,29 @@ model Trip {
   created_at           DateTime   @default(now())
   updated_at           DateTime   @updatedAt
 
-  vehicle   Vehicle  @relation(fields: [vehicle_id], references: [id])
-  driver    Driver   @relation(fields: [driver_id], references: [id])
+  vehicle   Vehicle  @relation(fields: [vehicle_id], references: [id], onDelete: Restrict)
+  driver    Driver   @relation(fields: [driver_id], references: [id], onDelete: Restrict)
   fuel_logs FuelLog[]
 
+  @@index([vehicle_id, status])
+  @@index([driver_id, status])
   @@map("trips")
 }
 
 model MaintenanceLog {
-  id                String            @id @default(uuid())
+  id                String              @id @default(uuid())
   vehicle_id        String
   issue_description String
-  priority          String            @default("Medium")
-  cost              Float             @default(0)
-  status            MaintenanceStatus @default(Open)
-  date              DateTime          @default(now())
-  created_at        DateTime          @default(now())
-  updated_at        DateTime          @updatedAt
+  priority          MaintenancePriority @default(Medium)
+  cost              Float               @default(0)
+  status            MaintenanceStatus   @default(Open)
+  date              DateTime            @default(now())
+  created_at        DateTime            @default(now())
+  updated_at        DateTime            @updatedAt
 
-  vehicle Vehicle @relation(fields: [vehicle_id], references: [id])
+  vehicle Vehicle @relation(fields: [vehicle_id], references: [id], onDelete: Cascade)
 
+  @@index([vehicle_id, status])
   @@map("maintenance_logs")
 }
 
@@ -139,9 +150,10 @@ model FuelLog {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  vehicle Vehicle @relation(fields: [vehicle_id], references: [id])
-  trip    Trip?   @relation(fields: [trip_id], references: [id])
+  vehicle Vehicle @relation(fields: [vehicle_id], references: [id], onDelete: Cascade)
+  trip    Trip?   @relation(fields: [trip_id], references: [id], onDelete: SetNull)
 
+  @@index([vehicle_id])
   @@map("fuel_logs")
 }
 
@@ -154,8 +166,9 @@ model Expense {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  vehicle Vehicle @relation(fields: [vehicle_id], references: [id])
+  vehicle Vehicle @relation(fields: [vehicle_id], references: [id], onDelete: Cascade)
 
+  @@index([vehicle_id])
   @@map("expenses")
 }
 

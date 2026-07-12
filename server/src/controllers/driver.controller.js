@@ -1,7 +1,5 @@
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../config/prisma');
 const asyncHandler = require('../utils/asyncHandler');
-
-const prisma = new PrismaClient();
 
 /**
  * GET /api/drivers
@@ -33,6 +31,7 @@ const getDriverById = asyncHandler(async (req, res) => {
 
 /**
  * POST /api/drivers
+ * Wrapped in $transaction for atomicity with activity log (W-04).
  */
 const createDriver = asyncHandler(async (req, res) => {
   const {
@@ -45,20 +44,24 @@ const createDriver = asyncHandler(async (req, res) => {
     status,
   } = req.body;
 
-  const driver = await prisma.driver.create({
-    data: {
-      name,
-      license_number,
-      license_category,
-      license_expiry_date: new Date(license_expiry_date),
-      contact_number,
-      safety_score: parseFloat(safety_score || 100),
-      status: status || 'Available',
-    },
-  });
+  const driver = await prisma.$transaction(async (tx) => {
+    const d = await tx.driver.create({
+      data: {
+        name,
+        license_number,
+        license_category,
+        license_expiry_date: new Date(license_expiry_date),
+        contact_number,
+        safety_score: parseFloat(safety_score || 100),
+        status: status || 'Available',
+      },
+    });
 
-  await prisma.activity.create({
-    data: { text: `Driver added: ${name} (${license_category})` },
+    await tx.activity.create({
+      data: { text: `Driver added: ${name} (${license_category})` },
+    });
+
+    return d;
   });
 
   res.status(201).json(driver);
@@ -103,6 +106,7 @@ const updateDriver = asyncHandler(async (req, res) => {
 
 /**
  * DELETE /api/drivers/:id
+ * Checks for related trip history before deletion (C-02).
  */
 const deleteDriver = asyncHandler(async (req, res) => {
   const { id } = req.params;
@@ -118,10 +122,19 @@ const deleteDriver = asyncHandler(async (req, res) => {
     });
   }
 
-  await prisma.driver.delete({ where: { id } });
+  // Check for related trip records (C-02)
+  const relatedTrips = await prisma.trip.count({ where: { driver_id: id } });
+  if (relatedTrips > 0) {
+    return res.status(400).json({
+      error: `Cannot delete driver. They have ${relatedTrips} trip record(s).`,
+    });
+  }
 
-  await prisma.activity.create({
-    data: { text: `Driver removed: ${existing.name}` },
+  await prisma.$transaction(async (tx) => {
+    await tx.driver.delete({ where: { id } });
+    await tx.activity.create({
+      data: { text: `Driver removed: ${existing.name}` },
+    });
   });
 
   res.json({ message: 'Driver deleted successfully.' });

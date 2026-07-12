@@ -40,6 +40,7 @@ function AuthPage() {
     "safety@transitops.com",
     "finance@transitops.com",
     "john.fleet@transitops.com",
+    "sarah.driver@transitops.com",
     "mike.driver@transitops.com",
     "lisa.safety@transitops.com",
     "david.finance@transitops.com",
@@ -49,6 +50,7 @@ function AuthPage() {
     "fleet@transitops.com": "Fleet Manager",
     "john.fleet@transitops.com": "Fleet Manager",
     "driver@transitops.com": "Dispatcher",
+    "sarah.driver@transitops.com": "Dispatcher",
     "mike.driver@transitops.com": "Dispatcher",
     "safety@transitops.com": "Safety Officer",
     "lisa.safety@transitops.com": "Safety Officer",
@@ -79,13 +81,20 @@ function AuthPage() {
     if (Object.keys(nextErrors).length) return;
     
     try {
+      setIsSubmitting(true);
       const res = await fetch("http://localhost:5000/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, role }),
       });
       
       const data = await res.json();
+      
+      if (res.status === 403) {
+        setLockoutErrorMsg(data.error);
+        setIsLockedAlertOpen(true);
+        return;
+      }
       
       if (!res.ok) {
         setErrors({ email: data.error || "Login failed" });
@@ -93,10 +102,12 @@ function AuthPage() {
       }
       
       logout();
-      login({ ...data.user, token: data.token });
+      login({ email: data.user.email, role, token: data.token });
       navigate({ to: "/dashboard" });
     } catch (err) {
       setErrors({ email: "Could not connect to backend server" });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

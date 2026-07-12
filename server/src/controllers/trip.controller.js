@@ -1,7 +1,13 @@
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../config/prisma');
 const asyncHandler = require('../utils/asyncHandler');
 
-const prisma = new PrismaClient();
+// Allowed status transitions (whitelist)
+const ALLOWED_TRANSITIONS = {
+  Draft: ['Dispatched', 'Cancelled'],
+  Dispatched: ['Completed', 'Cancelled'],
+  Completed: [],   // Terminal state
+  Cancelled: [],    // Terminal state
+};
 
 /**
  * GET /api/trips
@@ -42,59 +48,9 @@ const getTripById = asyncHandler(async (req, res) => {
 });
 
 /**
- * Validates dispatch guardrails for assigning a vehicle and driver to a trip.
- * Returns an error message string if validation fails, or null if all checks pass.
- */
-async function validateDispatchGuardrails(vehicleId, driverId, cargoWeight) {
-  // Fetch vehicle
-  const vehicle = await prisma.vehicle.findUnique({ where: { id: vehicleId } });
-  if (!vehicle) return 'Vehicle not found.';
-
-  // Fetch driver
-  const driver = await prisma.driver.findUnique({ where: { id: driverId } });
-  if (!driver) return 'Driver not found.';
-
-  // Rule 1: Vehicle cannot be Retired or InShop
-  if (vehicle.status === 'Retired') {
-    return `Vehicle '${vehicle.registration_number}' is retired and cannot be assigned to a trip.`;
-  }
-  if (vehicle.status === 'InShop') {
-    return `Vehicle '${vehicle.registration_number}' is currently in the shop for maintenance.`;
-  }
-
-  // Rule 2: Driver license must not be expired
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  if (new Date(driver.license_expiry_date) < today) {
-    return `Driver '${driver.name}' has an expired license (expired ${driver.license_expiry_date.toISOString().split('T')[0]}).`;
-  }
-
-  // Rule 3: Driver must not be Suspended
-  if (driver.status === 'Suspended') {
-    return `Driver '${driver.name}' is suspended and cannot be assigned to a trip.`;
-  }
-
-  // Rule 4: Vehicle must not already be OnTrip
-  if (vehicle.status === 'OnTrip') {
-    return `Vehicle '${vehicle.registration_number}' is already on another active trip.`;
-  }
-
-  // Rule 5: Driver must not already be OnTrip
-  if (driver.status === 'OnTrip') {
-    return `Driver '${driver.name}' is already on another active trip.`;
-  }
-
-  // Rule 6: Cargo weight must not exceed max load capacity
-  if (cargoWeight > vehicle.max_load_capacity) {
-    return `Cargo weight (${cargoWeight} kg) exceeds vehicle max load capacity (${vehicle.max_load_capacity} kg).`;
-  }
-
-  return null; // All checks passed
-}
-
-/**
  * POST /api/trips
  * Creates a new trip. If status is 'Dispatched', triggers dispatch guardrails and state cascades.
+ * Guardrails run INSIDE the transaction to prevent race conditions (C-01).
  */
 const createTrip = asyncHandler(async (req, res) => {
   const {
@@ -109,20 +65,16 @@ const createTrip = asyncHandler(async (req, res) => {
 
   const tripStatus = status || 'Draft';
 
-  // If dispatching immediately, run all guardrails
-  if (tripStatus === 'Dispatched') {
-    const error = await validateDispatchGuardrails(
-      vehicle_id,
-      driver_id,
-      parseFloat(cargo_weight)
-    );
-    if (error) {
-      return res.status(400).json({ error });
-    }
-  }
-
-  // Create trip + cascade in an atomic transaction
+  // Create trip + cascade in an atomic transaction (guardrails included)
   const result = await prisma.$transaction(async (tx) => {
+    // If dispatching immediately, run all guardrails INSIDE the transaction
+    if (tripStatus === 'Dispatched') {
+      const error = await validateDispatchGuardrails(tx, vehicle_id, driver_id, parseFloat(cargo_weight));
+      if (error) {
+        throw new Error(error);
+      }
+    }
+
     const trip = await tx.trip.create({
       data: {
         source,
@@ -162,7 +114,14 @@ const createTrip = asyncHandler(async (req, res) => {
     });
 
     return trip;
+  }).catch((err) => {
+    // Re-throw as a response-friendly error
+    return { __error: err.message };
   });
+
+  if (result && result.__error) {
+    return res.status(400).json({ error: result.__error });
+  }
 
   res.status(201).json(result);
 });
@@ -170,6 +129,8 @@ const createTrip = asyncHandler(async (req, res) => {
 /**
  * PATCH /api/trips/:id
  * Updates a trip. Handles status transitions with automated state cascades.
+ * Enforces allowed transition whitelist (W-03).
+ * Guardrails run INSIDE the transaction (C-01).
  */
 const updateTrip = asyncHandler(async (req, res) => {
   const { id } = req.params;
@@ -187,15 +148,13 @@ const updateTrip = asyncHandler(async (req, res) => {
   const newStatus = req.body.status;
   const oldStatus = existing.status;
 
-  // If transitioning to Dispatched, run dispatch guardrails
-  if (newStatus === 'Dispatched' && oldStatus !== 'Dispatched') {
-    const error = await validateDispatchGuardrails(
-      existing.vehicle_id,
-      existing.driver_id,
-      existing.cargo_weight
-    );
-    if (error) {
-      return res.status(400).json({ error });
+  // Enforce status transition whitelist (W-03)
+  if (newStatus && newStatus !== oldStatus) {
+    const allowed = ALLOWED_TRANSITIONS[oldStatus];
+    if (!allowed || !allowed.includes(newStatus)) {
+      return res.status(400).json({
+        error: `Invalid status transition: '${oldStatus}' → '${newStatus}'. Allowed: ${(allowed || []).join(', ') || 'none (terminal state)'}`,
+      });
     }
   }
 
@@ -214,6 +173,14 @@ const updateTrip = asyncHandler(async (req, res) => {
 
   // Execute in a transaction for atomicity
   const result = await prisma.$transaction(async (tx) => {
+    // If transitioning to Dispatched, run guardrails INSIDE the transaction (C-01)
+    if (newStatus === 'Dispatched' && oldStatus !== 'Dispatched') {
+      const error = await validateDispatchGuardrails(tx, existing.vehicle_id, existing.driver_id, existing.cargo_weight);
+      if (error) {
+        throw new Error(error);
+      }
+    }
+
     const trip = await tx.trip.update({
       where: { id },
       data: updateData,
@@ -281,10 +248,68 @@ const updateTrip = asyncHandler(async (req, res) => {
     }
 
     return trip;
+  }).catch((err) => {
+    return { __error: err.message };
   });
+
+  if (result && result.__error) {
+    return res.status(400).json({ error: result.__error });
+  }
 
   res.json(result);
 });
+
+/**
+ * Validates dispatch guardrails for assigning a vehicle and driver to a trip.
+ * Accepts a transaction client (tx) to ensure reads happen within the same transaction (C-01).
+ * Returns an error message string if validation fails, or null if all checks pass.
+ */
+async function validateDispatchGuardrails(tx, vehicleId, driverId, cargoWeight) {
+  // Fetch vehicle within the transaction
+  const vehicle = await tx.vehicle.findUnique({ where: { id: vehicleId } });
+  if (!vehicle) return 'Vehicle not found.';
+
+  // Fetch driver within the transaction
+  const driver = await tx.driver.findUnique({ where: { id: driverId } });
+  if (!driver) return 'Driver not found.';
+
+  // Rule 1: Vehicle cannot be Retired or InShop
+  if (vehicle.status === 'Retired') {
+    return `Vehicle '${vehicle.registration_number}' is retired and cannot be assigned to a trip.`;
+  }
+  if (vehicle.status === 'InShop') {
+    return `Vehicle '${vehicle.registration_number}' is currently in the shop for maintenance.`;
+  }
+
+  // Rule 2: Driver license must not be expired
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (new Date(driver.license_expiry_date) < today) {
+    return `Driver '${driver.name}' has an expired license (expired ${driver.license_expiry_date.toISOString().split('T')[0]}).`;
+  }
+
+  // Rule 3: Driver must not be Suspended
+  if (driver.status === 'Suspended') {
+    return `Driver '${driver.name}' is suspended and cannot be assigned to a trip.`;
+  }
+
+  // Rule 4: Vehicle must not already be OnTrip
+  if (vehicle.status === 'OnTrip') {
+    return `Vehicle '${vehicle.registration_number}' is already on another active trip.`;
+  }
+
+  // Rule 5: Driver must not already be OnTrip
+  if (driver.status === 'OnTrip') {
+    return `Driver '${driver.name}' is already on another active trip.`;
+  }
+
+  // Rule 6: Cargo weight must not exceed max load capacity
+  if (cargoWeight > vehicle.max_load_capacity) {
+    return `Cargo weight (${cargoWeight} kg) exceeds vehicle max load capacity (${vehicle.max_load_capacity} kg).`;
+  }
+
+  return null; // All checks passed
+}
 
 module.exports = {
   getTrips,

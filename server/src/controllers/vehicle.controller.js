@@ -1,7 +1,5 @@
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../config/prisma');
 const asyncHandler = require('../utils/asyncHandler');
-
-const prisma = new PrismaClient();
 
 /**
  * GET /api/vehicles
@@ -36,6 +34,7 @@ const getVehicleById = asyncHandler(async (req, res) => {
 
 /**
  * POST /api/vehicles
+ * Wrapped in $transaction for atomicity with activity log (W-04).
  */
 const createVehicle = asyncHandler(async (req, res) => {
   const {
@@ -65,22 +64,25 @@ const createVehicle = asyncHandler(async (req, res) => {
     });
   }
 
-  const vehicle = await prisma.vehicle.create({
-    data: {
-      registration_number,
-      name_model,
-      type,
-      max_load_capacity: parseFloat(max_load_capacity),
-      current_odometer: parseFloat(current_odometer || 0),
-      acquisition_cost: parseFloat(acquisition_cost || 0),
-      status: status || 'Available',
-      region: region || '',
-    },
-  });
+  const vehicle = await prisma.$transaction(async (tx) => {
+    const v = await tx.vehicle.create({
+      data: {
+        registration_number,
+        name_model,
+        type,
+        max_load_capacity: parseFloat(max_load_capacity),
+        current_odometer: parseFloat(current_odometer || 0),
+        acquisition_cost: parseFloat(acquisition_cost || 0),
+        status: status || 'Available',
+        region: region || '',
+      },
+    });
 
-  // Log activity
-  await prisma.activity.create({
-    data: { text: `Vehicle added: ${name_model} (${registration_number})` },
+    await tx.activity.create({
+      data: { text: `Vehicle added: ${name_model} (${registration_number})` },
+    });
+
+    return v;
   });
 
   res.status(201).json(vehicle);
@@ -145,6 +147,7 @@ const updateVehicle = asyncHandler(async (req, res) => {
 
 /**
  * DELETE /api/vehicles/:id
+ * Checks for related trip history before deletion (C-02).
  */
 const deleteVehicle = asyncHandler(async (req, res) => {
   const { id } = req.params;
@@ -161,10 +164,23 @@ const deleteVehicle = asyncHandler(async (req, res) => {
     });
   }
 
-  await prisma.vehicle.delete({ where: { id } });
+  // Check for related trip records (C-02)
+  const relatedTrips = await prisma.trip.count({ where: { vehicle_id: id } });
+  if (relatedTrips > 0) {
+    return res.status(400).json({
+      error: `Cannot delete vehicle. It has ${relatedTrips} trip record(s). Consider retiring it instead.`,
+    });
+  }
 
-  await prisma.activity.create({
-    data: { text: `Vehicle removed: ${existing.name_model} (${existing.registration_number})` },
+  await prisma.$transaction(async (tx) => {
+    // Delete related records without trip history
+    await tx.maintenanceLog.deleteMany({ where: { vehicle_id: id } });
+    await tx.fuelLog.deleteMany({ where: { vehicle_id: id } });
+    await tx.expense.deleteMany({ where: { vehicle_id: id } });
+    await tx.vehicle.delete({ where: { id } });
+    await tx.activity.create({
+      data: { text: `Vehicle removed: ${existing.name_model} (${existing.registration_number})` },
+    });
   });
 
   res.json({ message: 'Vehicle deleted successfully.' });
