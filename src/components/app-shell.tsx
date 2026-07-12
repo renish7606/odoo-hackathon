@@ -6,6 +6,7 @@ import {
   LineChart,
   LogOut,
   Route as RouteIcon,
+  Settings,
   Truck,
   Users,
   Wrench,
@@ -23,7 +24,9 @@ const nav = [
   { to: "/maintenance", label: "Maintenance", icon: Wrench },
   { to: "/analysis", label: "Analysis", icon: BarChart3 },
   { to: "/reports", label: "Reports", icon: LineChart },
+  { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
+
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { session, logout } = useStore();

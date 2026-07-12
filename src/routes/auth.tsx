@@ -12,7 +12,7 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-const roles: Role[] = ["Fleet Manager", "Driver", "Safety Officer", "Financial Analyst"];
+const roles: Role[] = ["Fleet Manager", "Dispatcher", "Safety Officer", "Financial Analyst"];
 
 function AuthPage() {
   const { login, logout } = useStore();
