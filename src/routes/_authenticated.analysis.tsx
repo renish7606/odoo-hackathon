@@ -189,7 +189,7 @@ function AnalysisPage() {
                 analysis.costMix.map((item) => (
                   <div key={item.key} className="flex items-center justify-between gap-3 text-sm">
                     <div className="flex items-center gap-2 text-muted-foreground">
-                      <span className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: chartColors[item.key] }} />
+                      <span className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: chartColors[item.key as keyof typeof chartColors] }} />
                       {item.name}
                     </div>
                     <span className="font-medium text-foreground">{currency(item.value)}</span>

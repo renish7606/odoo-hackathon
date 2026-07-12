@@ -297,7 +297,8 @@ function useAnalytics(filters: { vehicleType: string; status: string; region: st
       const regionalData: RegionStats[] = Array.from(regionsMap.entries()).map(([reg, stat]) => ({
         region: reg,
         fleetUtilizationPercentage: stat.active > 0 ? (stat.onTrip / stat.active) * 100 : 0,
-        totalOperationalCost: stat.cost
+        totalOperationalCost: stat.cost,
+        avgROI: 0
       }));
 
       setData({
@@ -630,7 +631,7 @@ function DashboardBottomRow() {
         const driver = drivers.find((d) => d.id === t.driverId);
         
         let eta = "—";
-        if (t.status === "On Trip") eta = "45 min";
+        if (t.status as string === "On Trip") eta = "45 min";
         if (t.status === "Dispatched") eta = "1h 10m";
         if (t.status === "Draft") eta = "Awaiting vehicle";
 
