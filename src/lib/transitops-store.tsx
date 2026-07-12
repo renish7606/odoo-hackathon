@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
-export type Role = "Fleet Manager" | "Driver" | "Safety Officer" | "Financial Analyst";
+export type Role = "Fleet Manager" | "Dispatcher" | "Safety Officer" | "Financial Analyst";
 export type VehicleType = "Truck" | "Van";
 export type VehicleStatus = "Available" | "On Trip" | "In Shop" | "Retired";
 export type DriverStatus = "Available" | "On Trip" | "Off Duty" | "Suspended";
@@ -66,6 +66,12 @@ export interface Session {
   role: Role;
 }
 
+export interface Settings {
+  depotName: string;
+  currency: string;
+  distanceUnit: "Kilometer" | "Mile";
+}
+
 interface State {
   vehicles: Vehicle[];
   drivers: Driver[];
@@ -74,6 +80,7 @@ interface State {
   expenses: Expense[];
   activity: Activity[];
   session: Session | null;
+  settings: Settings;
 }
 
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -81,6 +88,7 @@ const now = () => new Date().toISOString();
 
 const seed: State = {
   session: null,
+  settings: { depotName: "Gandhinagar Depot", currency: "INR", distanceUnit: "Kilometer" },
   vehicles: [
     { id: uid(), regNumber: "MH-12-AB-1001", model: "Tata Prima 4028", type: "Truck", maxLoad: 25000, odometer: 84210, cost: 45000, status: "Available", region: "West" },
     { id: uid(), regNumber: "MH-14-CD-2233", model: "Ashok Leyland Dost", type: "Van", maxLoad: 1500, odometer: 32100, cost: 12000, status: "On Trip", region: "West" },
@@ -117,6 +125,7 @@ interface Ctx extends State {
   addMaintenance: (m: Omit<Maintenance, "id">) => void;
   toggleMaintenance: (id: string) => void;
   addExpense: (e: Omit<Expense, "id">) => void;
+  updateSettings: (patch: Partial<Settings>) => void;
 }
 
 const StoreContext = createContext<Ctx | null>(null);
@@ -125,7 +134,11 @@ function loadInitial(): State {
   if (typeof window === "undefined") return seed;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw) as State;
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<State>;
+      // Merge with seed so any new fields (e.g. settings) are always present
+      return { ...seed, ...parsed, settings: { ...seed.settings, ...(parsed.settings ?? {}) } };
+    }
   } catch {}
   // fix seed: link first expense to first vehicle
   const s = { ...seed };
@@ -220,6 +233,10 @@ export function TransitOpsProvider({ children }: { children: ReactNode }) {
       addExpense: (e) => {
         setState((s) => ({ ...s, expenses: [{ ...e, id: uid() }, ...s.expenses] }));
         pushActivity(`${e.kind} logged: $${e.amount}`);
+      },
+      updateSettings: (patch) => {
+        setState((s) => ({ ...s, settings: { ...s.settings, ...patch } }));
+        pushActivity("Depot settings updated");
       },
     };
   }, [state]);
