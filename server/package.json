@@ -12,7 +12,7 @@
     "db:reset": "npx prisma migrate reset --force"
   },
   "dependencies": {
-    "@prisma/client": "^6.10.1",
+    "@prisma/client": "^6.19.3",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
@@ -21,10 +21,10 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
-    "node-cron": "^4.6.0"
+    "node-cron": "^4.6.0",
+    "prisma": "^6.19.3"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10",
-    "prisma": "^6.10.1"
+    "nodemon": "^3.1.10"
   }
 }
