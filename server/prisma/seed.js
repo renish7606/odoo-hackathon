@@ -32,6 +32,21 @@ async function main() {
     prisma.user.create({
       data: { email: 'finance@transitops.com', password_hash: passwordHash, role: 'FinancialAnalyst' },
     }),
+    prisma.user.create({
+      data: { email: 'john.fleet@transitops.com', password_hash: passwordHash, role: 'FleetManager' },
+    }),
+    prisma.user.create({
+      data: { email: 'sarah.driver@transitops.com', password_hash: passwordHash, role: 'Driver' },
+    }),
+    prisma.user.create({
+      data: { email: 'mike.driver@transitops.com', password_hash: passwordHash, role: 'Driver' },
+    }),
+    prisma.user.create({
+      data: { email: 'lisa.safety@transitops.com', password_hash: passwordHash, role: 'SafetyOfficer' },
+    }),
+    prisma.user.create({
+      data: { email: 'david.finance@transitops.com', password_hash: passwordHash, role: 'FinancialAnalyst' },
+    }),
   ]);
 
   console.log(`✅ Created ${users.length} users`);

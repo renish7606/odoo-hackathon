@@ -41,12 +41,14 @@ enum MaintenanceStatus {
 }
 
 model User {
-  id            String    @id @default(uuid())
-  email         String    @unique
-  password_hash String
-  role          UserRole
-  created_at    DateTime  @default(now())
-  updated_at    DateTime  @updatedAt
+  id              String    @id @default(uuid())
+  email           String    @unique
+  password_hash   String
+  role            UserRole
+  failed_attempts Int       @default(0)
+  is_locked       Boolean   @default(false)
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
 
   @@map("users")
 }

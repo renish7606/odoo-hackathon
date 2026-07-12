@@ -51,8 +51,31 @@ const register = asyncHandler(async (req, res) => {
  * POST /api/auth/login
  * Authenticate user with email and password.
  */
+const ALLOWED_EMAILS = [
+  'fleet@transitops.com',
+  'driver@transitops.com',
+  'safety@transitops.com',
+  'finance@transitops.com',
+  'john.fleet@transitops.com',
+  'sarah.driver@transitops.com',
+  'mike.driver@transitops.com',
+  'lisa.safety@transitops.com',
+  'david.finance@transitops.com'
+];
+
+const DB_ROLE_MAP = {
+  'Fleet Manager': 'FleetManager',
+  'Safety Officer': 'SafetyOfficer',
+  'Financial Analyst': 'FinancialAnalyst',
+  'Dispatcher': 'Driver'
+};
+
 const login = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, role } = req.body;
+
+  if (!email || !ALLOWED_EMAILS.includes(email.toLowerCase())) {
+    return res.status(401).json({ error: 'Invalid email or password.' });
+  }
 
   // Find user by email
   const user = await prisma.user.findUnique({ where: { email } });
@@ -60,10 +83,53 @@ const login = asyncHandler(async (req, res) => {
     return res.status(401).json({ error: 'Invalid email or password.' });
   }
 
+  // Validate the selected role
+  if (role) {
+    const dbRole = DB_ROLE_MAP[role];
+    if (!dbRole || user.role !== dbRole) {
+      return res.status(401).json({ error: 'Access denied. Incorrect role selected for this email.' });
+    }
+  }
+
+  // Check if account is locked
+  if (user.is_locked) {
+    return res.status(403).json({
+      error: 'Account is locked due to too many failed login attempts. Please contact support.',
+    });
+  }
+
   // Compare password against stored hash
   const isMatch = await bcrypt.compare(password, user.password_hash);
   if (!isMatch) {
-    return res.status(401).json({ error: 'Invalid email or password.' });
+    const failedAttempts = user.failed_attempts + 1;
+    const isLocked = failedAttempts >= 5;
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        failed_attempts: failedAttempts,
+        is_locked: isLocked,
+      },
+    });
+
+    if (isLocked) {
+      return res.status(403).json({
+        error: 'Invalid email or password. Your account has been locked due to 5 failed login attempts.',
+      });
+    }
+
+    const remainingAttempts = 5 - failedAttempts;
+    return res.status(401).json({
+      error: `Invalid email or password. You have ${remainingAttempts} attempts remaining before your account is locked.`,
+    });
+  }
+
+  // If password matches, reset failed attempts
+  if (user.failed_attempts > 0) {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { failed_attempts: 0 },
+    });
   }
 
   // Generate JWT
