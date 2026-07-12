@@ -82,7 +82,7 @@ function AuthPage() {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await fetch("http://localhost:5000/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, role }),
@@ -101,7 +101,6 @@ function AuthPage() {
         return;
       }
 
-      localStorage.setItem("transitops_token", data.token);
       logout();
 
       const roleMap: Record<string, Role> = {
@@ -111,7 +110,9 @@ function AuthPage() {
         FinancialAnalyst: "Financial Analyst"
       };
 
-      login({ email: data.user.email, role: roleMap[data.user.role] || role });
+      const userRole = roleMap[data.user.role] || role;
+
+      login({ email: data.user.email, role: userRole, token: data.token });
       navigate({ to: "/dashboard" });
     } catch (err) {
       console.error(err);
@@ -122,7 +123,7 @@ function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen grid place-items-center bg-[oklch(0.985_0.002_90)] px-4">
+    <div className="min-h-screen grid place-items-center bg-muted px-4">
       <div className="w-full max-w-md">
         <div className="flex items-center gap-2 justify-center mb-6">
           <div className="h-9 w-9 rounded-md bg-slate-900 text-white grid place-items-center">
@@ -130,13 +131,13 @@ function AuthPage() {
           </div>
           <div>
             <div className="text-lg font-semibold leading-none">TransitOps</div>
-            <div className="text-[11px] uppercase tracking-wider text-slate-500 mt-1">Smart transport operations</div>
+            <div className="text-[11px] uppercase tracking-wider text-muted-foreground mt-1">Smart transport operations</div>
           </div>
         </div>
-        <form onSubmit={submit} className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+        <form onSubmit={submit} className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-4">
           <div>
-            <h1 className="text-base font-semibold text-slate-900">Sign in</h1>
-            <p className="text-xs text-slate-500 mt-1">Role-based access to the fleet command center.</p>
+            <h1 className="text-base font-semibold text-foreground">Sign in</h1>
+            <p className="text-xs text-muted-foreground mt-1">Role-based access to the fleet command center.</p>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="email">Email</Label>
@@ -161,12 +162,12 @@ function AuthPage() {
             {isSubmitting ? "Signing in..." : "Continue"}
           </Button>
           <div className="pt-2">
-            <p className="text-[11px] text-center text-slate-500 mb-2">Quick Login for Judges (pw: password123)</p>
+            <p className="text-[11px] text-center text-muted-foreground mb-2">Quick Login for Judges (pw: password123)</p>
             <div className="flex flex-wrap gap-2 justify-center">
-              <button type="button" onClick={() => { setEmail('fleet@transitops.com'); setPassword('password123'); }} className="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded transition-colors" disabled={isSubmitting}>Fleet Manager</button>
-              <button type="button" onClick={() => { setEmail('driver@transitops.com'); setPassword('password123'); }} className="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded transition-colors" disabled={isSubmitting}>Driver</button>
-              <button type="button" onClick={() => { setEmail('safety@transitops.com'); setPassword('password123'); }} className="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded transition-colors" disabled={isSubmitting}>Safety Officer</button>
-              <button type="button" onClick={() => { setEmail('finance@transitops.com'); setPassword('password123'); }} className="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded transition-colors" disabled={isSubmitting}>Finance Analyst</button>
+              <button type="button" onClick={() => { setEmail('fleet@transitops.com'); setPassword('password123'); setRole('Fleet Manager'); }} className="text-[10px] bg-muted hover:bg-muted/80 text-foreground px-2.5 py-1 rounded transition-colors" disabled={isSubmitting}>Fleet Manager</button>
+              <button type="button" onClick={() => { setEmail('driver@transitops.com'); setPassword('password123'); setRole('Dispatcher'); }} className="text-[10px] bg-muted hover:bg-muted/80 text-foreground px-2.5 py-1 rounded transition-colors" disabled={isSubmitting}>Driver</button>
+              <button type="button" onClick={() => { setEmail('safety@transitops.com'); setPassword('password123'); setRole('Safety Officer'); }} className="text-[10px] bg-muted hover:bg-muted/80 text-foreground px-2.5 py-1 rounded transition-colors" disabled={isSubmitting}>Safety Officer</button>
+              <button type="button" onClick={() => { setEmail('finance@transitops.com'); setPassword('password123'); setRole('Financial Analyst'); }} className="text-[10px] bg-muted hover:bg-muted/80 text-foreground px-2.5 py-1 rounded transition-colors" disabled={isSubmitting}>Finance Analyst</button>
             </div>
           </div>
         </form>

@@ -79,15 +79,15 @@ function KpiCard({
   subtitle?: string;
 }) {
   return (
-    <div className="group relative rounded-xl border border-slate-200 bg-white p-5 transition-all duration-200 hover:shadow-md hover:border-slate-300">
+    <div className="group relative rounded-xl border border-border bg-card p-5 transition-all duration-200 hover:shadow-md hover:border-border">
       <div className="flex items-start justify-between">
         <div className="space-y-1">
-          <p className="text-xs font-medium uppercase tracking-wider text-slate-500">
+          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
             {label}
           </p>
-          <p className="text-2xl font-bold text-slate-900">{value}</p>
+          <p className="text-2xl font-bold text-foreground">{value}</p>
           {subtitle && (
-            <p className="text-[11px] text-slate-400">{subtitle}</p>
+            <p className="text-[11px] text-muted-foreground">{subtitle}</p>
           )}
         </div>
         <div
@@ -123,8 +123,8 @@ function FilterPill({
       className={cn(
         "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium border transition-all duration-150",
         active
-          ? "bg-slate-900 text-white border-slate-900 shadow-sm"
-          : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-slate-300",
+          ? "bg-card text-white border-border shadow-sm"
+          : "bg-card text-muted-foreground border-border hover:bg-muted hover:border-border",
       )}
     >
       {children}
@@ -132,7 +132,7 @@ function FilterPill({
         <span
           className={cn(
             "text-[10px] rounded-full px-1.5 py-0.5 min-w-[18px] text-center font-semibold",
-            active ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500",
+            active ? "bg-card/20 text-white" : "bg-muted text-muted-foreground",
           )}
         >
           {count}
@@ -152,7 +152,7 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-xs font-medium text-slate-600">{label}</Label>
+      <Label className="text-xs font-medium text-muted-foreground">{label}</Label>
       {children}
     </div>
   );
@@ -166,13 +166,13 @@ function OdometerBar({ km }: { km: number }) {
     pct > 75 ? "bg-red-500" : pct > 50 ? "bg-amber-500" : "bg-emerald-500";
   return (
     <div className="flex items-center gap-2">
-      <div className="h-1.5 w-16 rounded-full bg-slate-100 overflow-hidden">
+      <div className="h-1.5 w-16 rounded-full bg-muted overflow-hidden">
         <div
           className={cn("h-full rounded-full transition-all", color)}
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span className="text-xs tabular-nums text-slate-600">
+      <span className="text-xs tabular-nums text-muted-foreground">
         {km.toLocaleString()}
       </span>
     </div>
@@ -300,10 +300,10 @@ function FleetPage() {
       {/* ── Header ── */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">
+          <h1 className="text-xl font-semibold text-foreground">
             Fleet Management
           </h1>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <p className="text-sm text-muted-foreground mt-0.5">
             Complete overview of your vehicle fleet — status, utilization, and
             registry.
           </p>
@@ -431,7 +431,7 @@ function FleetPage() {
           label="Total Fleet"
           value={totalVehicles}
           icon={Truck}
-          accent="bg-slate-100 text-slate-700"
+          accent="bg-muted text-foreground"
           subtitle={`$${totalFleetValue.toLocaleString()} total value`}
         />
         <KpiCard
@@ -466,24 +466,24 @@ function FleetPage() {
           label="Retired"
           value={retired}
           icon={AlertTriangle}
-          accent="bg-slate-50 text-slate-500"
+          accent="bg-muted text-muted-foreground"
           subtitle="Decommissioned"
         />
       </div>
 
       {/* ── Filters + Search ── */}
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="rounded-xl border border-border bg-card shadow-sm">
         {/* Toolbar */}
-        <div className="p-4 border-b border-slate-100">
+        <div className="p-4 border-b border-border">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             {/* Search */}
             <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Search registration, model, region…"
-                className="pl-9 border-slate-200 bg-slate-50/50 focus:bg-white transition-colors"
+                className="pl-9 border-border bg-muted/50 focus:bg-card transition-colors"
               />
             </div>
 
@@ -506,14 +506,14 @@ function FleetPage() {
             </Tabs>
 
             {/* Filtered count */}
-            <span className="text-xs text-slate-400 ml-auto">
+            <span className="text-xs text-muted-foreground ml-auto">
               {filtered.length} of {totalVehicles} vehicles
             </span>
           </div>
 
           {/* Status filter pills */}
           <div className="flex items-center gap-2 mt-3">
-            <Filter className="h-3.5 w-3.5 text-slate-400" />
+            <Filter className="h-3.5 w-3.5 text-muted-foreground" />
             <FilterPill
               active={statusFilter === "All"}
               onClick={() => setStatusFilter("All")}
@@ -559,7 +559,7 @@ function FleetPage() {
               <TableHead>
                 <button
                   onClick={() => toggleSort("regNumber")}
-                  className="inline-flex items-center gap-1 hover:text-slate-900 transition-colors"
+                  className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
                 >
                   Reg Number
                   <ArrowUpDown className="h-3 w-3" />
@@ -568,7 +568,7 @@ function FleetPage() {
               <TableHead>
                 <button
                   onClick={() => toggleSort("model")}
-                  className="inline-flex items-center gap-1 hover:text-slate-900 transition-colors"
+                  className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
                 >
                   Vehicle
                   <ArrowUpDown className="h-3 w-3" />
@@ -579,7 +579,7 @@ function FleetPage() {
               <TableHead>
                 <button
                   onClick={() => toggleSort("maxLoad")}
-                  className="inline-flex items-center gap-1 hover:text-slate-900 transition-colors"
+                  className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
                 >
                   Max Load
                   <ArrowUpDown className="h-3 w-3" />
@@ -588,7 +588,7 @@ function FleetPage() {
               <TableHead>
                 <button
                   onClick={() => toggleSort("odometer")}
-                  className="inline-flex items-center gap-1 hover:text-slate-900 transition-colors"
+                  className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
                 >
                   Odometer (km)
                   <ArrowUpDown className="h-3 w-3" />
@@ -597,7 +597,7 @@ function FleetPage() {
               <TableHead className="text-right">
                 <button
                   onClick={() => toggleSort("cost")}
-                  className="inline-flex items-center gap-1 hover:text-slate-900 transition-colors ml-auto"
+                  className="inline-flex items-center gap-1 hover:text-foreground transition-colors ml-auto"
                 >
                   Value ($)
                   <ArrowUpDown className="h-3 w-3" />
@@ -611,44 +611,44 @@ function FleetPage() {
             {filtered.map((v) => (
               <TableRow
                 key={v.id}
-                className="group cursor-pointer transition-colors hover:bg-slate-50/80"
+                className="group cursor-pointer transition-colors hover:bg-muted/80"
                 onClick={() => setDetailVehicle(v.id)}
               >
-                <TableCell className="font-mono text-xs font-medium text-slate-800">
+                <TableCell className="font-mono text-xs font-medium text-foreground">
                   {v.regNumber}
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-lg bg-slate-100 grid place-items-center shrink-0">
+                    <div className="h-8 w-8 rounded-lg bg-muted grid place-items-center shrink-0">
                       {v.type === "Truck" ? (
-                        <Truck className="h-4 w-4 text-slate-500" />
+                        <Truck className="h-4 w-4 text-muted-foreground" />
                       ) : (
-                        <Fuel className="h-4 w-4 text-slate-500" />
+                        <Fuel className="h-4 w-4 text-muted-foreground" />
                       )}
                     </div>
-                    <span className="font-medium text-sm text-slate-800">
+                    <span className="font-medium text-sm text-foreground">
                       {v.model}
                     </span>
                   </div>
                 </TableCell>
                 <TableCell>
-                  <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                  <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-foreground">
                     {v.type}
                   </span>
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-1 text-sm text-slate-600">
-                    <MapPin className="h-3 w-3 text-slate-400" />
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <MapPin className="h-3 w-3 text-muted-foreground" />
                     {v.region}
                   </div>
                 </TableCell>
-                <TableCell className="text-sm tabular-nums text-slate-600">
+                <TableCell className="text-sm tabular-nums text-muted-foreground">
                   {v.maxLoad.toLocaleString()} kg
                 </TableCell>
                 <TableCell>
                   <OdometerBar km={v.odometer} />
                 </TableCell>
-                <TableCell className="text-right text-sm font-medium tabular-nums text-slate-700">
+                <TableCell className="text-right text-sm font-medium tabular-nums text-foreground">
                   ${v.cost.toLocaleString()}
                 </TableCell>
                 <TableCell>
@@ -725,10 +725,10 @@ function FleetPage() {
               <TableRow>
                 <TableCell
                   colSpan={9}
-                  className="text-center py-12 text-sm text-slate-400"
+                  className="text-center py-12 text-sm text-muted-foreground"
                 >
                   <div className="flex flex-col items-center gap-2">
-                    <Truck className="h-8 w-8 text-slate-300" />
+                    <Truck className="h-8 w-8 text-muted-foreground" />
                     <span>No vehicles match your search or filters.</span>
                   </div>
                 </TableCell>
@@ -748,12 +748,12 @@ function FleetPage() {
             <>
               <SheetHeader>
                 <SheetTitle className="flex items-center gap-2">
-                  <div className="h-9 w-9 rounded-lg bg-slate-100 grid place-items-center">
-                    <Truck className="h-5 w-5 text-slate-600" />
+                  <div className="h-9 w-9 rounded-lg bg-muted grid place-items-center">
+                    <Truck className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <div>
                     <div>{detail.model}</div>
-                    <div className="text-xs font-normal text-slate-500">
+                    <div className="text-xs font-normal text-muted-foreground">
                       {detail.regNumber}
                     </div>
                   </div>
@@ -764,10 +764,10 @@ function FleetPage() {
                 {/* Status + quick info */}
                 <div className="flex items-center gap-2 flex-wrap">
                   <StatusPill value={detail.status} />
-                  <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                  <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-foreground">
                     {detail.type}
                   </span>
-                  <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                  <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-foreground">
                     <MapPin className="h-3 w-3" />
                     {detail.region}
                   </span>
@@ -775,24 +775,24 @@ function FleetPage() {
 
                 {/* Metrics grid */}
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-lg border border-slate-200 p-3">
-                    <div className="text-[11px] uppercase tracking-wider text-slate-500">
+                  <div className="rounded-lg border border-border p-3">
+                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
                       Max Load
                     </div>
-                    <div className="text-lg font-semibold text-slate-900 mt-0.5">
+                    <div className="text-lg font-semibold text-foreground mt-0.5">
                       {detail.maxLoad.toLocaleString()} kg
                     </div>
                   </div>
-                  <div className="rounded-lg border border-slate-200 p-3">
-                    <div className="text-[11px] uppercase tracking-wider text-slate-500">
+                  <div className="rounded-lg border border-border p-3">
+                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
                       Acquisition Cost
                     </div>
-                    <div className="text-lg font-semibold text-slate-900 mt-0.5">
+                    <div className="text-lg font-semibold text-foreground mt-0.5">
                       ${detail.cost.toLocaleString()}
                     </div>
                   </div>
-                  <div className="rounded-lg border border-slate-200 p-3 col-span-2">
-                    <div className="text-[11px] uppercase tracking-wider text-slate-500 mb-2">
+                  <div className="rounded-lg border border-border p-3 col-span-2">
+                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">
                       Odometer
                     </div>
                     <div className="flex items-center gap-3">
@@ -803,11 +803,11 @@ function FleetPage() {
                         )}
                         className="flex-1 h-2"
                       />
-                      <span className="text-sm font-semibold tabular-nums text-slate-900">
+                      <span className="text-sm font-semibold tabular-nums text-foreground">
                         {detail.odometer.toLocaleString()} km
                       </span>
                     </div>
-                    <div className="text-[10px] text-slate-400 mt-1">
+                    <div className="text-[10px] text-muted-foreground mt-1">
                       {Math.round((detail.odometer / 200000) * 100)}% of
                       200,000 km lifecycle
                     </div>
@@ -816,11 +816,11 @@ function FleetPage() {
 
                 {/* Trip history */}
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-900 mb-2">
+                  <h3 className="text-sm font-semibold text-foreground mb-2">
                     Trip History
                   </h3>
                   {detailTrips.length === 0 ? (
-                    <p className="text-xs text-slate-400 py-3">
+                    <p className="text-xs text-muted-foreground py-3">
                       No trips recorded for this vehicle.
                     </p>
                   ) : (
@@ -828,14 +828,14 @@ function FleetPage() {
                       {detailTrips.slice(0, 10).map((t) => (
                         <div
                           key={t.id}
-                          className="flex items-center justify-between rounded-lg border border-slate-100 p-2.5 text-xs"
+                          className="flex items-center justify-between rounded-lg border border-border p-2.5 text-xs"
                         >
                           <div>
-                            <span className="font-medium text-slate-800">
+                            <span className="font-medium text-foreground">
                               {t.source}
                             </span>
-                            <span className="text-slate-400 mx-1">→</span>
-                            <span className="font-medium text-slate-800">
+                            <span className="text-muted-foreground mx-1">→</span>
+                            <span className="font-medium text-foreground">
                               {t.destination}
                             </span>
                           </div>
@@ -848,11 +848,11 @@ function FleetPage() {
 
                 {/* Maintenance history */}
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-900 mb-2">
+                  <h3 className="text-sm font-semibold text-foreground mb-2">
                     Maintenance Log
                   </h3>
                   {detailMaint.length === 0 ? (
-                    <p className="text-xs text-slate-400 py-3">
+                    <p className="text-xs text-muted-foreground py-3">
                       No maintenance records for this vehicle.
                     </p>
                   ) : (
@@ -860,13 +860,13 @@ function FleetPage() {
                       {detailMaint.slice(0, 10).map((m) => (
                         <div
                           key={m.id}
-                          className="flex items-center justify-between rounded-lg border border-slate-100 p-2.5 text-xs"
+                          className="flex items-center justify-between rounded-lg border border-border p-2.5 text-xs"
                         >
                           <div>
-                            <span className="font-medium text-slate-800">
+                            <span className="font-medium text-foreground">
                               {m.issue}
                             </span>
-                            <span className="text-slate-400 ml-2">
+                            <span className="text-muted-foreground ml-2">
                               ${m.cost.toLocaleString()}
                             </span>
                           </div>

@@ -40,8 +40,8 @@ function VehiclesPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Fleet Registry</h1>
-          <p className="text-sm text-slate-500">Master data for every vehicle in your operation.</p>
+          <h1 className="text-xl font-semibold text-foreground">Fleet Registry</h1>
+          <p className="text-sm text-muted-foreground">Master data for every vehicle in your operation.</p>
         </div>
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
@@ -78,9 +78,9 @@ function VehiclesPage() {
         </Sheet>
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-white">
-        <div className="p-3 border-b border-slate-200 flex items-center gap-2">
-          <Search className="h-4 w-4 text-slate-400" />
+      <div className="rounded-lg border border-border bg-card">
+        <div className="p-3 border-b border-border flex items-center gap-2">
+          <Search className="h-4 w-4 text-muted-foreground" />
           <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by registration, model, region…" className="border-0 shadow-none focus-visible:ring-0" />
         </div>
         <Table>
@@ -107,7 +107,7 @@ function VehiclesPage() {
                 <TableCell><StatusPill value={v.status} /></TableCell>
               </TableRow>
             ))}
-            {filtered.length === 0 && <TableRow><TableCell colSpan={7} className="text-center text-sm text-slate-500 py-8">No vehicles match your search.</TableCell></TableRow>}
+            {filtered.length === 0 && <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-8">No vehicles match your search.</TableCell></TableRow>}
           </TableBody>
         </Table>
       </div>
@@ -118,7 +118,7 @@ function VehiclesPage() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-xs text-slate-600">{label}</Label>
+      <Label className="text-xs text-muted-foreground">{label}</Label>
       {children}
     </div>
   );

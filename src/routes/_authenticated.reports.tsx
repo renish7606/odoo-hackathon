@@ -60,14 +60,14 @@ function ReportsPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Ledger &amp; Insights</h1>
-          <p className="text-sm text-slate-500">Log expenses and analyze per-vehicle efficiency and ROI.</p>
+          <h1 className="text-xl font-semibold text-foreground">Ledger &amp; Insights</h1>
+          <p className="text-sm text-muted-foreground">Log expenses and analyze per-vehicle efficiency and ROI.</p>
         </div>
         <Button variant="outline" onClick={exportCsv}><Download className="h-4 w-4 mr-1" /> Export CSV</Button>
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-white p-4">
-        <h2 className="text-sm font-semibold text-slate-900 mb-3">Log expense</h2>
+      <div className="rounded-lg border border-border bg-card p-4">
+        <h2 className="text-sm font-semibold text-foreground mb-3">Log expense</h2>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
           <Field label="Type">
             <Select value={form.kind} onValueChange={(v) => setForm({ ...form, kind: v as ExpenseKind })}>
@@ -94,10 +94,10 @@ function ReportsPage() {
         <div className="mt-3 flex justify-end"><Button onClick={submit}>Add entry</Button></div>
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-white">
-        <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-slate-900">Per-vehicle analytics</h2>
-          <span className="text-[11px] text-slate-500">Revenue estimated at ${REVENUE_PER_KM}/km · ROI = (Revenue − Costs) ÷ Acquisition</span>
+      <div className="rounded-lg border border-border bg-card">
+        <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-foreground">Per-vehicle analytics</h2>
+          <span className="text-[11px] text-muted-foreground">Revenue estimated at ${REVENUE_PER_KM}/km · ROI = (Revenue − Costs) ÷ Acquisition</span>
         </div>
         <Table>
           <TableHeader>
@@ -114,7 +114,7 @@ function ReportsPage() {
           <TableBody>
             {rows.map((r) => (
               <TableRow key={r.v.id}>
-                <TableCell><div className="font-mono text-xs">{r.v.regNumber}</div><div className="text-[11px] text-slate-500">{r.v.model}</div></TableCell>
+                <TableCell><div className="font-mono text-xs">{r.v.regNumber}</div><div className="text-[11px] text-muted-foreground">{r.v.model}</div></TableCell>
                 <TableCell className="text-right">{r.distance.toLocaleString()}</TableCell>
                 <TableCell className="text-right">{r.fuelLiters.toLocaleString()}</TableCell>
                 <TableCell className="text-right">{r.efficiency.toFixed(2)}</TableCell>
@@ -131,5 +131,5 @@ function ReportsPage() {
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return <div className="space-y-1.5"><Label className="text-xs text-slate-600">{label}</Label>{children}</div>;
+  return <div className="space-y-1.5"><Label className="text-xs text-muted-foreground">{label}</Label>{children}</div>;
 }
