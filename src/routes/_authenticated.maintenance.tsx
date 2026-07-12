@@ -37,8 +37,8 @@ function MaintenancePage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Repair Logbook</h1>
-          <p className="text-sm text-slate-500">Track service history and workshop assignments.</p>
+          <h1 className="text-xl font-semibold text-foreground">Repair Logbook</h1>
+          <p className="text-sm text-muted-foreground">Track service history and workshop assignments.</p>
         </div>
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild><Button><Plus className="h-4 w-4 mr-1" /> Create Maintenance Record</Button></SheetTrigger>
@@ -56,10 +56,10 @@ function MaintenancePage() {
               <Field label="Issue Description"><Input value={form.issue} onChange={(e) => setForm({ ...form, issue: e.target.value })} /></Field>
               <Field label="Target Repair Cost ($)"><Input type="number" value={form.cost} onChange={(e) => setForm({ ...form, cost: +e.target.value })} /></Field>
               <Field label="Entry Date"><Input type="date" value={form.entryDate} onChange={(e) => setForm({ ...form, entryDate: e.target.value })} /></Field>
-              <div className="flex items-center justify-between rounded-md border border-slate-200 p-3">
+              <div className="flex items-center justify-between rounded-md border border-border p-3">
                 <div>
                   <div className="text-sm font-medium">Log status: {form.status}</div>
-                  <div className="text-[11px] text-slate-500">Open moves the vehicle to “In Shop”.</div>
+                  <div className="text-[11px] text-muted-foreground">Open moves the vehicle to “In Shop”.</div>
                 </div>
                 <Switch checked={form.status === "Open"} onCheckedChange={(c) => setForm({ ...form, status: c ? "Open" : "Closed" })} />
               </div>
@@ -77,7 +77,7 @@ function MaintenancePage() {
         </span>
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-white">
+      <div className="rounded-lg border border-border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
@@ -90,7 +90,7 @@ function MaintenancePage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {maintenance.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-sm text-slate-500 py-8">No maintenance records.</TableCell></TableRow>}
+            {maintenance.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-8">No maintenance records.</TableCell></TableRow>}
             {maintenance.map((m) => (
               <TableRow key={m.id}>
                 <TableCell className="font-mono text-xs">{vehicleName(m.vehicleId)}</TableCell>
@@ -113,5 +113,5 @@ function MaintenancePage() {
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return <div className="space-y-1.5"><Label className="text-xs text-slate-600">{label}</Label>{children}</div>;
+  return <div className="space-y-1.5"><Label className="text-xs text-muted-foreground">{label}</Label>{children}</div>;
 }

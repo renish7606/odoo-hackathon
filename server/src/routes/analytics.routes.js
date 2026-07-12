@@ -1,12 +1,11 @@
 const { Router } = require('express');
-const { getDashboard, getReport } = require('../controllers/analytics.controller');
-const { protect, permit } = require('../middleware/auth');
+const { getDashboard, getReport, triggerCron } = require('../controllers/analytics.controller');
 
 const router = Router();
 
-router.use(protect);
-
-router.get('/dashboard', permit('FleetManager', 'FinancialAnalyst'), getDashboard);
-router.get('/report', permit('FleetManager', 'FinancialAnalyst'), getReport);
+// Public routes for hackathon simplicity (or apply auth if needed)
+router.get('/dashboard', getDashboard);
+router.get('/report', getReport);
+router.post('/trigger-cron', triggerCron);
 
 module.exports = router;

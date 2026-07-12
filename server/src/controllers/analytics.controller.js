@@ -199,4 +199,55 @@ const getReport = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { getDashboard, getReport };
+/**
+ * POST /api/analytics/trigger-cron
+ * Simulates a cron job to suspend drivers with expired licenses.
+ */
+const triggerCron = asyncHandler(async (req, res) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Find drivers with expired licenses who are not already suspended
+  const expiredDrivers = await prisma.driver.findMany({
+    where: {
+      license_expiry_date: {
+        lt: today,
+      },
+      status: {
+        not: 'Suspended'
+      }
+    }
+  });
+
+  if (expiredDrivers.length === 0) {
+    return res.json({ message: 'No drivers with newly expired licenses found.', count: 0 });
+  }
+
+  // Suspend them
+  const updateResult = await prisma.driver.updateMany({
+    where: {
+      id: {
+        in: expiredDrivers.map(d => d.id)
+      }
+    },
+    data: {
+      status: 'Suspended'
+    }
+  });
+
+  // Log activity for each
+  for (const driver of expiredDrivers) {
+    await prisma.activity.create({
+      data: {
+        text: `SYSTEM (CRON): Driver ${driver.name} suspended due to expired license (${driver.license_expiry_date.toISOString().split('T')[0]}).`
+      }
+    });
+  }
+
+  res.json({ 
+    message: `Successfully suspended ${updateResult.count} driver(s).`,
+    count: updateResult.count
+  });
+});
+
+module.exports = { getDashboard, getReport, triggerCron };
