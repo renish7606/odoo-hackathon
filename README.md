@@ -2,7 +2,7 @@
 
 A modern, full-stack fleet and transportation management platform designed to streamline transit operations, maintenance tracking, driver management, and financial analytics. 
 
-![TransitOps Dashboard](https://placehold.co/1200x400/1e293b/ffffff?text=TransitOps+Command+Center)
+
 
 ## ✨ Features
 
