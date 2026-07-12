@@ -119,12 +119,12 @@ function AnalysisPage() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Operations Analysis</h1>
-          <p className="text-sm text-slate-500">Performance, risk, and financial signals across the transport network.</p>
+          <h1 className="text-xl font-semibold text-foreground">Operations Analysis</h1>
+          <p className="text-sm text-muted-foreground">Performance, risk, and financial signals across the transport network.</p>
         </div>
-        <div className="rounded-md border border-slate-200 bg-white px-3 py-2 text-right">
-          <div className="text-[11px] uppercase tracking-wide text-slate-500">Revenue model</div>
-          <div className="text-sm font-semibold text-slate-900">${REVENUE_PER_KM}/km</div>
+        <div className="rounded-md border border-border bg-card px-3 py-2 text-right">
+          <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Revenue model</div>
+          <div className="text-sm font-semibold text-foreground">${REVENUE_PER_KM}/km</div>
         </div>
       </div>
 
@@ -150,10 +150,10 @@ function AnalysisPage() {
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
-        <section className="rounded-lg border border-slate-200 bg-white">
-          <div className="border-b border-slate-200 px-4 py-3">
-            <h2 className="text-sm font-semibold text-slate-900">Monthly revenue</h2>
-            <p className="text-xs text-slate-500">Completed trip revenue based on distance moved.</p>
+        <section className="rounded-lg border border-border bg-card">
+          <div className="border-b border-border px-4 py-3">
+            <h2 className="text-sm font-semibold text-foreground">Monthly revenue</h2>
+            <p className="text-xs text-muted-foreground">Completed trip revenue based on distance moved.</p>
           </div>
           <div className="p-4">
             <ChartContainer config={chartConfig} className="h-72 w-full">
@@ -168,10 +168,10 @@ function AnalysisPage() {
           </div>
         </section>
 
-        <section className="rounded-lg border border-slate-200 bg-white">
-          <div className="border-b border-slate-200 px-4 py-3">
-            <h2 className="text-sm font-semibold text-slate-900">Cost mix</h2>
-            <p className="text-xs text-slate-500">Fuel, maintenance, and route fees.</p>
+        <section className="rounded-lg border border-border bg-card">
+          <div className="border-b border-border px-4 py-3">
+            <h2 className="text-sm font-semibold text-foreground">Cost mix</h2>
+            <p className="text-xs text-muted-foreground">Fuel, maintenance, and route fees.</p>
           </div>
           <div className="grid gap-3 p-4 md:grid-cols-[180px_1fr] xl:grid-cols-1">
             <ChartContainer config={chartConfig} className="mx-auto h-44 w-full max-w-56">
@@ -188,25 +188,25 @@ function AnalysisPage() {
               {analysis.costMix.length ? (
                 analysis.costMix.map((item) => (
                   <div key={item.key} className="flex items-center justify-between gap-3 text-sm">
-                    <div className="flex items-center gap-2 text-slate-600">
+                    <div className="flex items-center gap-2 text-muted-foreground">
                       <span className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: chartColors[item.key] }} />
                       {item.name}
                     </div>
-                    <span className="font-medium text-slate-900">{currency(item.value)}</span>
+                    <span className="font-medium text-foreground">{currency(item.value)}</span>
                   </div>
                 ))
               ) : (
-                <div className="text-sm text-slate-500">No costs logged yet.</div>
+                <div className="text-sm text-muted-foreground">No costs logged yet.</div>
               )}
             </div>
           </div>
         </section>
       </div>
 
-      <section className="rounded-lg border border-slate-200 bg-white">
-        <div className="border-b border-slate-200 px-4 py-3">
-          <h2 className="text-sm font-semibold text-slate-900">Top costliest vehicles</h2>
-          <p className="text-xs text-slate-500">Total spend by vehicle from expenses and maintenance.</p>
+      <section className="rounded-lg border border-border bg-card">
+        <div className="border-b border-border px-4 py-3">
+          <h2 className="text-sm font-semibold text-foreground">Top costliest vehicles</h2>
+          <p className="text-xs text-muted-foreground">Total spend by vehicle from expenses and maintenance.</p>
         </div>
         <div className="p-4">
           <ChartContainer config={chartConfig} className="h-72 w-full">
@@ -226,39 +226,39 @@ function AnalysisPage() {
       </section>
 
       <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
-        <section className="rounded-lg border border-slate-200 bg-white">
-          <div className="border-b border-slate-200 px-4 py-3">
-            <h2 className="text-sm font-semibold text-slate-900">Regional movement</h2>
-            <p className="text-xs text-slate-500">Completed distance and active fleet load by region.</p>
+        <section className="rounded-lg border border-border bg-card">
+          <div className="border-b border-border px-4 py-3">
+            <h2 className="text-sm font-semibold text-foreground">Regional movement</h2>
+            <p className="text-xs text-muted-foreground">Completed distance and active fleet load by region.</p>
           </div>
           <div className="space-y-4 p-4">
             {analysis.regionRows.map((row) => (
               <div key={row.region} className="grid grid-cols-[88px_1fr_74px] items-center gap-3 text-sm">
                 <div>
-                  <div className="font-medium text-slate-800">{row.region}</div>
-                  <div className="text-[11px] text-slate-500">{row.vehicles} vehicles</div>
+                  <div className="font-medium text-foreground">{row.region}</div>
+                  <div className="text-[11px] text-muted-foreground">{row.vehicles} vehicles</div>
                 </div>
-                <div className="h-3 overflow-hidden rounded-full bg-slate-100">
+                <div className="h-3 overflow-hidden rounded-full bg-muted">
                   <div
-                    className="h-full rounded-full bg-slate-900"
+                    className="h-full rounded-full bg-card"
                     style={{ width: `${Math.max(6, (row.distance / maxRegionDistance) * 100)}%` }}
                   />
                 </div>
                 <div className="text-right">
-                  <div className="font-medium text-slate-900">{row.distance.toLocaleString()} km</div>
-                  <div className="text-[11px] text-slate-500">{row.load}% load</div>
+                  <div className="font-medium text-foreground">{row.distance.toLocaleString()} km</div>
+                  <div className="text-[11px] text-muted-foreground">{row.load}% load</div>
                 </div>
               </div>
             ))}
           </div>
         </section>
 
-        <section className="rounded-lg border border-slate-200 bg-white">
-          <div className="border-b border-slate-200 px-4 py-3">
-            <h2 className="text-sm font-semibold text-slate-900">Decision signals</h2>
-            <p className="text-xs text-slate-500">Current areas worth manager attention.</p>
+        <section className="rounded-lg border border-border bg-card">
+          <div className="border-b border-border px-4 py-3">
+            <h2 className="text-sm font-semibold text-foreground">Decision signals</h2>
+            <p className="text-xs text-muted-foreground">Current areas worth manager attention.</p>
           </div>
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-border">
             <Signal
               icon={TrendingUp}
               label="Best ROI vehicle"
@@ -281,15 +281,15 @@ function AnalysisPage() {
         </section>
       </div>
 
-      <section className="rounded-lg border border-slate-200 bg-white">
-        <div className="border-b border-slate-200 px-4 py-3">
-          <h2 className="text-sm font-semibold text-slate-900">Vehicle performance matrix</h2>
-          <p className="text-xs text-slate-500">Efficiency and return view for each asset.</p>
+      <section className="rounded-lg border border-border bg-card">
+        <div className="border-b border-border px-4 py-3">
+          <h2 className="text-sm font-semibold text-foreground">Vehicle performance matrix</h2>
+          <p className="text-xs text-muted-foreground">Efficiency and return view for each asset.</p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-xs text-slate-500">
-              <tr className="border-b border-slate-200">
+            <thead className="bg-muted text-xs text-muted-foreground">
+              <tr className="border-b border-border">
                 <th className="px-4 py-3 text-left font-medium">Vehicle</th>
                 <th className="px-4 py-3 text-right font-medium">Distance</th>
                 <th className="px-4 py-3 text-right font-medium">Efficiency</th>
@@ -298,12 +298,12 @@ function AnalysisPage() {
                 <th className="px-4 py-3 text-right font-medium">ROI</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-border">
               {analysis.vehicleRows.map((row) => (
                 <tr key={row.vehicle.id}>
                   <td className="px-4 py-3">
-                    <div className="font-mono text-xs text-slate-900">{row.vehicle.regNumber}</div>
-                    <div className="text-[11px] text-slate-500">{row.vehicle.model}</div>
+                    <div className="font-mono text-xs text-foreground">{row.vehicle.regNumber}</div>
+                    <div className="text-[11px] text-muted-foreground">{row.vehicle.model}</div>
                   </td>
                   <td className="px-4 py-3 text-right">{row.distance.toLocaleString()} km</td>
                   <td className="px-4 py-3 text-right">{row.efficiency ? `${row.efficiency.toFixed(2)} km/L` : "No fuel data"}</td>
@@ -336,20 +336,20 @@ function Kpi({
   tone?: "neutral" | "positive" | "negative" | "warning";
 }) {
   const toneClass = {
-    neutral: "text-slate-900",
+    neutral: "text-foreground",
     positive: "text-emerald-700",
     negative: "text-red-700",
     warning: "text-amber-700",
   }[tone];
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4">
+    <div className="rounded-lg border border-border bg-card p-4">
       <div className="flex items-center justify-between">
-        <span className="text-xs uppercase tracking-wide text-slate-500">{label}</span>
-        <Icon className="h-4 w-4 text-slate-400" />
+        <span className="text-xs uppercase tracking-wide text-muted-foreground">{label}</span>
+        <Icon className="h-4 w-4 text-muted-foreground" />
       </div>
       <div className={`mt-2 text-2xl font-semibold ${toneClass}`}>{value}</div>
-      <div className="mt-1 text-[11px] text-slate-500">{hint}</div>
+      <div className="mt-1 text-[11px] text-muted-foreground">{hint}</div>
     </div>
   );
 }
@@ -367,13 +367,13 @@ function Signal({
 }) {
   return (
     <div className="flex items-start gap-3 px-4 py-3">
-      <div className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-md bg-slate-100 text-slate-600">
+      <div className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-md bg-muted text-muted-foreground">
         <Icon className="h-4 w-4" />
       </div>
       <div className="min-w-0">
-        <div className="text-[11px] uppercase tracking-wide text-slate-500">{label}</div>
-        <div className="truncate text-sm font-medium text-slate-900">{value}</div>
-        <div className="text-xs text-slate-500">{detail}</div>
+        <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</div>
+        <div className="truncate text-sm font-medium text-foreground">{value}</div>
+        <div className="text-xs text-muted-foreground">{detail}</div>
       </div>
     </div>
   );
